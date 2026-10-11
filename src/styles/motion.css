@@ -18,11 +18,10 @@
 @keyframes toast-in { from { opacity: 0; transform: translateY(12px); } }
 @keyframes toast-out { to { opacity: 0; transform: translateY(12px); } }
 
-.sheet[open] { animation: sheet-in 260ms var(--easing); }
-.sheet[open]::backdrop { animation: fade-in 260ms ease; }
+:is(.sheet, .adder)[open] { animation: sheet-in 260ms var(--easing); }
+:is(.sheet, .adder)[open]::backdrop { animation: fade-in 260ms ease; }
 @keyframes sheet-in { from { transform: translateY(100%); } }
 @keyframes fade-in { from { opacity: 0; } }
-.adder[open] { animation: reveal 200ms var(--easing); }
 
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 240ms; animation-timing-function: ease; }
 :is(.item, .list-row, .pick:enabled):active { background: var(--surface-2); }
@@ -30,6 +29,6 @@
 .segmented::before { transition: transform 240ms var(--easing); }
 
 @media (prefers-reduced-motion: reduce) {
-  .reveal, .toast, .toast.leaving, .leaving.row, .sheet[open], .sheet[open]::backdrop, .adder[open] { animation: none; }
+  .reveal, .toast, .toast.leaving, .leaving.row, :is(.sheet, .adder)[open], :is(.sheet, .adder)[open]::backdrop { animation: none; }
   .segmented::before, .bottom-nav::before, .basket svg { transition: none; }
 }

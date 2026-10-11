@@ -5,7 +5,7 @@ import { HapticButton } from './HapticButton'
 
 export function HistoryRows({ entries, onList, onAdd, counted }: { entries: HistoryEntry[]; onList: Set<string>; onAdd: (name: string) => void; counted?: boolean }) {
   return (
-    <div className="rows reveal">
+    <div className="bleed reveal">
       {entries.map((h) => {
         const added = onList.has(normalize(h.name))
         const Icon = added ? Check : Plus

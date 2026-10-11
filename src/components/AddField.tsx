@@ -1,6 +1,7 @@
 import type { Ref } from 'react'
 import { Plus } from 'lucide-react'
 import { ICON_SIZE, LABELS } from '../../shared/constants'
+import { haptic } from './HapticButton'
 
 export function AddField({ ref, value, onChange, onSubmit, placeholder, autoFocus }: { ref?: Ref<HTMLInputElement>; value: string; onChange: (value: string) => void; onSubmit: () => void; placeholder: string; autoFocus?: boolean }) {
   return (
@@ -8,6 +9,7 @@ export function AddField({ ref, value, onChange, onSubmit, placeholder, autoFocu
       className="add"
       onSubmit={(e) => {
         e.preventDefault()
+        if (value.trim()) haptic()
         onSubmit()
       }}
     >

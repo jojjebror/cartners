@@ -16,8 +16,8 @@
 .bleed { margin-inline: calc(-1 * var(--edge-start)) calc(-1 * var(--edge-end)); border-top: 1px solid var(--line); overflow: hidden; }
 .bleed:empty { display: none; }
 .bleed > * { padding-inline: var(--edge-start) var(--edge-end); border-bottom: 1px solid var(--line); }
-.bleed > .item { min-height: 52px; gap: 12px; }
-.bleed > .item .row-name { font-size: 15px; }
+.bleed > .row { min-height: 52px; gap: 12px; }
+.bleed > .row .row-name { font-size: 15px; }
 
 .list-row { gap: 12px; padding-block: 12px; }
 .list-row-text { flex: 1; min-width: 0; display: grid; gap: 3px; }
@@ -35,24 +35,15 @@
   align-items: center;
   gap: 8px;
   width: 100%;
-  min-height: 44px;
+  min-height: 48px;
   border: 0;
-  background: none;
-  color: var(--muted);
-  font: 600 12px/1 var(--font-display);
-  letter-spacing: 0.16em;
+  background: var(--surface);
+  font: 600 13px/1 var(--font-display);
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
-.basket::before, .basket::after { content: ''; flex: 1; border-top: 1.5px dashed currentColor; opacity: 0.6; }
-.bleed > .basket { border-bottom: 0; }
-.basket[aria-expanded='true'] svg { transform: rotate(180deg); }
-
-.sum { display: grid; gap: 4px; padding-top: 4px; }
-.sum-line { display: flex; align-items: baseline; gap: 8px; font: 700 13px/1.4 var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; }
-.sum-line.soft { color: var(--muted); }
-.sum-line > :last-child { font: 600 14px/1.2 var(--font-score); font-variant-numeric: tabular-nums; letter-spacing: 0; }
-.leader { flex: 1; min-width: 12px; border-bottom: 1.5px dotted var(--muted); opacity: 0.7; }
-mark { padding-inline: 5px; background: linear-gradient(transparent 12%, var(--highlight) 12% 92%, transparent 92%); color: var(--on-highlight); }
+.basket svg { margin-left: auto; color: var(--muted); }
+.basket[aria-expanded='false'] svg { transform: rotate(-90deg); }
 
 .dock {
   position: fixed;
@@ -142,7 +133,7 @@ mark { padding-inline: 5px; background: linear-gradient(transparent 12%, var(--h
   background: var(--surface);
   color: var(--text);
 }
-.sheet::backdrop { background: rgb(0 0 0 / 0.5); }
+.sheet::backdrop, .adder::backdrop { background: rgb(0 0 0 / 0.5); }
 .sheet-body { padding: 20px max(var(--gutter), env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(var(--gutter), env(safe-area-inset-left)); }
 .adder {
   width: 100%;
@@ -156,7 +147,6 @@ mark { padding-inline: 5px; background: linear-gradient(transparent 12%, var(--h
   color: var(--text);
 }
 .adder[open] { display: flex; flex-direction: column; }
-.adder::backdrop { background: var(--bg); }
 .adder-bar { display: flex; align-items: center; gap: 12px; padding: calc(10px + env(safe-area-inset-top)) var(--edge-end) 10px var(--edge-start); border-bottom: 1px solid var(--line); }
 .adder-bar .add { flex: 1; }
 .adder-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: grid; align-content: start; gap: 12px; padding: 16px var(--edge-end) calc(24px + env(safe-area-inset-bottom)) var(--edge-start); }
@@ -172,7 +162,6 @@ mark { padding-inline: 5px; background: linear-gradient(transparent 12%, var(--h
   text-transform: uppercase;
 }
 
-.pick { min-height: 52px; }
 .pick[aria-pressed='true'] { cursor: default; }
 
 .segmented { position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; padding: 3px; border-radius: calc(var(--radius) + 3px); background: var(--surface-2); }

@@ -10,7 +10,7 @@ import { HistoryRows } from '../components/HistoryRows'
 import { onListNames, sortItems, suggest, type Item } from '../data/items'
 import { addItem, clearChecked, deleteItem, deleteList, rememberList, restoreItem, setChecked, useHistory, useItems, useLists } from '../data/store'
 import { useHousehold } from '../household'
-import { useFlip, usePresence, useSwipeAway } from '../motion'
+import { dismiss, useFlip, usePresence, useSwipeAway } from '../motion'
 
 export function ListPage() {
   const id = useParams()[LIST_PARAM]!
@@ -28,7 +28,7 @@ export function ListPage() {
   const field = useRef<HTMLInputElement>(null)
   const goBack = useBack()
   const toast = usePresence(undo)
-  const [basketOpen, setBasketOpen] = useState(false)
+  const [basketOpen, setBasketOpen] = useState(true)
   const sorted = sortItems(items.docs)
   const basket = sorted.filter((i) => i.checked)
   const left = sorted.length - basket.length
@@ -45,8 +45,9 @@ export function ListPage() {
   }, [undo])
 
   const add = (name: string) => {
-    if (name.trim()) addItem(id, name.trim(), items.docs)
-    setInput('')
+    if (!name.trim()) return
+    addItem(id, name.trim(), items.docs)
+    dismiss(adder.current)
   }
 
   const toggle = (item: Item) => {
@@ -114,29 +115,16 @@ export function ListPage() {
           {basket.length > 0 && (
             <button className="basket" aria-expanded={basketOpen} onClick={() => setBasketOpen(!basketOpen)}>
               {LABELS.inBasket}
-              <ChevronDown size={SMALL_ICON_SIZE} aria-hidden="true" />
+              <span className="badge">{basket.length}</span>
+              <ChevronDown size={ICON_SIZE} aria-hidden="true" />
             </button>
           )}
           {basketOpen && basket.map(row)}
         </div>
-        {sorted.length > 0 && (
-          <div className="sum">
-            <span className="sum-line">
-              {LABELS.left}
-              <span className="leader" />
-              <mark>{left}</mark>
-            </span>
-            <span className="sum-line soft">
-              {LABELS.inBasket}
-              <span className="leader" />
-              <span>{basket.length}</span>
-            </span>
-          </div>
-        )}
         {basket.length > 0 && (
-          <button className="text-button reveal" onClick={clear}>
+          <HapticButton className="text-button reveal" onClick={clear}>
             {LABELS.clearChecked}
-          </button>
+          </HapticButton>
         )}
       </main>
       {createPortal(
@@ -151,7 +139,7 @@ export function ListPage() {
       <dialog ref={adder} className="adder" aria-label={LABELS.addItem} onClose={() => setInput('')}>
         <div className="adder-bar">
           <AddField ref={field} value={input} onChange={setInput} onSubmit={() => add(input)} placeholder={LABELS.addItem} />
-          <button className="text-button" onClick={() => adder.current?.close()}>
+          <button className="text-button" onClick={() => dismiss(adder.current)}>
             {LABELS.done}
           </button>
         </div>
@@ -160,7 +148,7 @@ export function ListPage() {
           {matches.length > 0 ? <HistoryRows entries={matches} onList={onListNames(items.docs)} onAdd={add} /> : !input.trim() && <p className="hint">{LABELS.historyEmpty}</p>}
         </div>
       </dialog>
-      <dialog ref={options} className="sheet" aria-label={LABELS.listOptions} onClose={() => setConfirming(false)} onClick={(e) => e.target === e.currentTarget && options.current?.close()}>
+      <dialog ref={options} className="sheet" aria-label={LABELS.listOptions} onClose={() => setConfirming(false)} onClick={(e) => e.target === e.currentTarget && dismiss(options.current)}>
         {list && (
           <div className="sheet-body stack-tight">
             <h2 className="section-title">{list.name}</h2>
@@ -168,7 +156,7 @@ export function ListPage() {
               <div className="stack-tight reveal">
                 <p className="hint">{LABELS.deleteListHint(list.name)}</p>
                 <div className="confirm-actions">
-                  <button className="outline-button" onClick={() => options.current?.close()}>
+                  <button className="outline-button" onClick={() => dismiss(options.current)}>
                     {LABELS.cancel}
                   </button>
                   <HapticButton className="solid-button danger" onClick={remove}>
@@ -188,7 +176,7 @@ export function ListPage() {
       {toast.shown && (
         <div className={toast.leaving ? 'toast leaving' : 'toast'} key={toast.shown.text} role="status">
           <span>{toast.shown.text}</span>
-          <button
+          <HapticButton
             className="text-button"
             onClick={() => {
               toast.shown!.revert()
@@ -196,7 +184,7 @@ export function ListPage() {
             }}
           >
             {LABELS.undo}
-          </button>
+          </HapticButton>
         </div>
       )}
     </>

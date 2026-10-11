@@ -16,7 +16,6 @@
   --panel-text: #eceef1;
   --panel-muted: #8b929c;
   --mark: #4fd486;
-  --on-highlight: var(--panel);
 
   --bg: var(--theme-light);
   --surface: #ffffff;

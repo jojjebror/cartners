@@ -9,7 +9,7 @@ export const LOGO_DRAWING = {
   badge: { size: 512, rx: 112 },
   cart: { frame: 'M92 138 H142 L190 326 H382 L414 198 H157', width: 30, wheels: [214, 360], wheelY: 384, wheelRadius: 24 },
   check: { d: 'M222 236 L274 284 L412 132', width: 36, outline: 66 },
-  colors: { badge: '#0d0f12', paper: '#eceef1', highlight: '#ffcf3a', check: '#4fd486' },
+  colors: { badge: '#0d0f12', paper: '#eceef1', check: '#4fd486' },
 }
 
 export const THEMES = ['light', 'dark'] as const

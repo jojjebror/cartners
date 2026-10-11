@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent, type SyntheticEvent } from 'react'
 import { MOTION, REDUCED_MOTION_QUERY, SPLASH, SWIPE, paths } from '../shared/constants'
+import { haptic } from './components/HapticButton'
 
 const reduced = () => matchMedia(REDUCED_MOTION_QUERY).matches
 
@@ -57,6 +58,7 @@ export function useSwipeAway() {
     drag.current = undefined
     if (!d?.horizontal) return
     const away = onAway && -d.dx > d.el.offsetWidth * SWIPE.removeRatio
+    if (away) haptic()
     d.el.style.translate = ''
     const duration = reduced() ? 0 : away ? MOTION.exitMs : MOTION.moveMs
     const slide = d.el.animate({ translate: [`${d.dx}px`, away ? '-100%' : '0'] }, { duration, easing: MOTION.easing, fill: away ? 'forwards' : 'none' })
@@ -89,6 +91,15 @@ export function useSwipeAway() {
       e.preventDefault()
       e.stopPropagation()
     },
+  })
+}
+
+export function dismiss(dialog: HTMLDialogElement | null) {
+  if (!dialog) return
+  const slide = dialog.animate({ transform: ['none', 'translateY(100%)'] }, { duration: reduced() ? 0 : MOTION.exitMs, easing: 'ease-in', fill: 'forwards' })
+  slide.finished.then(() => {
+    dialog.close()
+    slide.cancel()
   })
 }
 
