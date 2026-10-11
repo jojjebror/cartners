@@ -3,13 +3,12 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import { APP_DESCRIPTION, APP_NAME, LANG, LOGO_DRAWING, MOTION, SPLASH, THEME_COLORS, THEME_STORAGE_KEY } from './shared/constants/index.ts'
 
-const { viewBox, paper, lines, line, check, colors } = LOGO_DRAWING
+const { viewBox, cart, check, colors } = LOGO_DRAWING
 const splashContent = [
   `<svg class="splash-logo" viewBox="${viewBox}">`,
-  '<g class="splash-paper">',
-  `<path d="${paper}" fill="${colors.paper}" />`,
-  ...lines.map(({ x, y, width, highlight }) =>
-    `<rect x="${x}" y="${y}" width="${width}" height="${line.height}" rx="${line.rx}" fill="${highlight ? colors.highlight : colors.badge}" opacity="${highlight ? 1 : line.opacity}" />`),
+  '<g class="splash-cart">',
+  `<path d="${cart.frame}" fill="none" stroke="${colors.paper}" stroke-width="${cart.width}" stroke-linecap="round" stroke-linejoin="round" />`,
+  ...cart.wheels.map((x) => `<circle cx="${x}" cy="${cart.wheelY}" r="${cart.wheelRadius}" fill="${colors.paper}" />`),
   '</g>',
   `<path class="splash-check" d="${check.d}" pathLength="1" stroke="${colors.badge}" stroke-width="${check.outline}" />`,
   `<path class="splash-check" d="${check.d}" pathLength="1" stroke="${colors.check}" stroke-width="${check.width}" />`,

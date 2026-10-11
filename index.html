@@ -17,7 +17,7 @@
       body:has(> #%SPLASH_ID%:not([inert])) { background: var(--theme-dark); }
       body:has(> #%SPLASH_ID%:not([inert])) > #root { visibility: hidden; }
       .splash-logo { width: %SPLASH_LOGO_PX%px; height: %SPLASH_LOGO_PX%px; overflow: visible; }
-      .splash-paper { transform-box: fill-box; transform-origin: 50% 100%; animation: splash-glide 520ms 120ms cubic-bezier(0.2, 0.9, 0.25, 1.1) both, splash-stamp 260ms 1040ms ease-out; }
+      .splash-cart { transform-box: fill-box; transform-origin: 50% 100%; animation: splash-glide 520ms 120ms cubic-bezier(0.2, 0.9, 0.25, 1.1) both, splash-stamp 260ms 1040ms ease-out; }
       .splash-check { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; animation: splash-draw 380ms 680ms cubic-bezier(0.6, 0, 0.4, 1) both; }
       .splash-name { color: %LOGO_PAPER%; font: 600 38px/1 var(--font-wordmark); letter-spacing: 0.06em; text-transform: uppercase; }
       .splash-name span { display: inline-block; animation: splash-rise 420ms calc(1250ms + var(--i) * 42ms) %MOTION_EASING% both; }
