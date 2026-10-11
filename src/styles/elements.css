@@ -101,7 +101,7 @@ mark { padding-inline: 5px; background: linear-gradient(transparent 12%, var(--h
 .add:focus-within { border-color: var(--accent); }
 .add input { flex: 1; min-width: 0; padding: 9px 11px; border: 0; background: none; outline: none; font: 500 16px/1.2 var(--font-body); }
 .add input::placeholder { color: var(--muted); }
-.add-button { display: grid; place-items: center; width: 38px; border: 0; border-radius: var(--radius); background: var(--accent); color: var(--on-accent); }
+.add-button { display: grid; place-items: center; width: 38px; border: 0; background: none; color: var(--accent); }
 
 .outline-button {
   display: inline-flex;

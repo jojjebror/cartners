@@ -13,7 +13,7 @@ export function AddField({ ref, value, onChange, onSubmit, placeholder, autoFocu
     >
       <input ref={ref} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} aria-label={placeholder} enterKeyHint="done" autoComplete="off" autoFocus={autoFocus} />
       <button className="add-button" aria-label={LABELS.add} onPointerDown={(e) => e.preventDefault()}>
-        <Plus size={ICON_SIZE} aria-hidden="true" />
+        <Plus size={ICON_SIZE} strokeWidth={3} aria-hidden="true" />
       </button>
     </form>
   )
