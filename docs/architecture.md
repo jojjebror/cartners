@@ -1,6 +1,6 @@
 # Architecture
 
-Lappen is a shared shopping list for a household, used as an installable web app on phones.
+Cartners is a shared shopping list for a household, used as an installable web app on phones.
 Three constraints shaped how it is built:
 
 - Two people edit the same list from different phones, often in a shop with poor signal.

@@ -1,4 +1,4 @@
-import type { Theme } from './app.ts'
+import { APP_NAME, type Theme } from './app.ts'
 
 export const LIST_PARAM = 'listId'
 export const HOUSEHOLD_PARAM = 'householdId'
@@ -65,8 +65,8 @@ export const LABELS = {
   invite: 'Bjud in',
   copied: 'Länken är kopierad',
   inviteHint: 'Alla i hushållet ser och ändrar samma listor.',
-  inviteTitle: 'Lappen',
-  inviteText: 'Gå med i vårt hushåll i Lappen',
+  inviteTitle: APP_NAME,
+  inviteText: `Gå med i vårt hushåll i ${APP_NAME}`,
   joinTitle: 'Gå med i hushållet',
   joinHint: (names: string) => (names ? `${names} har bjudit in dig.` : 'Du har blivit inbjuden.'),
   joinMoves: 'Ni delar sedan alla listor, och dina listor följer med.',
@@ -78,5 +78,5 @@ export const LABELS = {
   deleteListHint: (name: string) => `${name} och alla varor på den försvinner för hela hushållet.`,
   cancel: 'Avbryt',
   delete: 'Ta bort',
-  about: 'Om Lappen',
+  about: `Om ${APP_NAME}`,
 }

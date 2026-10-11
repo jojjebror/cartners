@@ -1,4 +1,4 @@
-export const APP_NAME = 'Lappen'
+export const APP_NAME = 'Cartners'
 export const APP_DESCRIPTION = 'En delad inköpslista'
 export const APP_LOGO = '/logo.svg'
 export const LANG = 'sv'
