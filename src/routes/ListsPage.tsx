@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronRight, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { Link, useNavigate } from 'react-router'
 import { DEFAULT_LIST_NAME, LABELS, SMALL_ICON_SIZE, paths } from '../../shared/constants'
 import { AddField } from '../components/AddField'
@@ -11,11 +11,20 @@ import { useFlip } from '../motion'
 
 function ListCard({ list }: { list: List }) {
   const items = useItems(list)
+  const total = items.docs.length
+  const left = items.docs.filter((i) => !i.checked).length
   return (
-    <Link to={paths.list(list.id)} className="row list-card" data-key={list.id}>
-      <span className="list-card-name">{list.name}</span>
-      {!items.loading && <span className="row-count">{items.docs.filter((i) => !i.checked).length}</span>}
-      <ChevronRight className="row-chevron" size={SMALL_ICON_SIZE + 2} aria-hidden="true" />
+    <Link to={paths.list(list.id)} className="row list-row" data-key={list.id}>
+      <span className="list-row-text">
+        <span className="list-row-name">{list.name}</span>
+        {!items.loading && <span className="hint">{total ? LABELS.basketOf(total - left, total) : LABELS.emptyList}</span>}
+      </span>
+      {!items.loading && (
+        <span className="list-row-figure">
+          <b>{left}</b>
+          {LABELS.left}
+        </span>
+      )}
     </Link>
   )
 }
@@ -34,7 +43,7 @@ export function ListsPage() {
       <main className="body stack">
         <h1 className="section-title">{LABELS.yourLists}</h1>
         {household && !lists.loading && lists.docs.length === 0 && <p className="hint reveal">{LABELS.noLists}</p>}
-        <div className="cards" ref={cards}>
+        <div className="bleed" ref={cards}>
           {lists.docs.map((list) => (
             <ListCard key={list.id} list={list} />
           ))}
@@ -50,7 +59,7 @@ export function ListsPage() {
             />
           </div>
         ) : (
-          <button className="outline-button" disabled={!household} onClick={() => setCreating(true)}>
+          <button className="text-button" disabled={!household} onClick={() => setCreating(true)}>
             <Plus size={SMALL_ICON_SIZE} strokeWidth={3} aria-hidden="true" />
             {LABELS.newList}
           </button>

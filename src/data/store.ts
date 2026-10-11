@@ -4,6 +4,7 @@ import {
   arrayRemove,
   arrayUnion,
   collection,
+  deleteDoc,
   doc,
   getDocs,
   increment,
@@ -11,6 +12,7 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  Timestamp,
   updateDoc,
   where,
   writeBatch,
@@ -29,16 +31,26 @@ const lists = collection(db, COLLECTIONS.lists)
 const household = (householdId: string) => doc(households, householdId)
 const items = (listId: string) => collection(db, COLLECTIONS.lists, listId, COLLECTIONS.items)
 const history = (listId: string) => collection(db, COLLECTIONS.lists, listId, COLLECTIONS.history)
+const householdsOf = (member: string) => query(households, where('members', 'array-contains', member))
+const listsOf = (householdId: string) => query(lists, where('householdId', '==', householdId))
 
 const fail = (e: unknown) => console.error(e)
 
+const latest = new Map<(key: string) => Query, Map<string, unknown[]>>()
+
 function useLive<T>(key: string | undefined, build: (key: string) => Query, map: (d: QueryDocumentSnapshot<DocumentData>) => T, includeMetadataChanges = false) {
-  const [state, setState] = useState<{ key?: string; docs: T[] }>({ docs: [] })
+  const known = latest.get(build) ?? latest.set(build, new Map()).get(build)!
+  const [, setDocs] = useState<T[]>()
   useEffect(() => {
     if (!key) return
-    return onSnapshot(build(key), { includeMetadataChanges }, (s) => setState({ key, docs: s.docs.map(map) }), fail)
+    return onSnapshot(build(key), { includeMetadataChanges }, (s) => {
+      const docs = s.docs.map(map)
+      known.set(key, docs)
+      setDocs(docs)
+    }, fail)
   }, [key])
-  return { docs: state.key === key ? state.docs : [], loading: state.key !== key }
+  const docs = key ? (known.get(key) as T[] | undefined) : []
+  return { docs: docs ?? [], loading: !docs }
 }
 
 function useLiveDoc<T>(key: string | undefined, build: (key: string) => DocumentReference, map: (d: DocumentData) => T) {
@@ -54,13 +66,12 @@ const toHousehold = (id: string, data: DocumentData): Household => ({ id, member
 
 export const useUid = () => use(uid)
 
-export const useHouseholds = () =>
-  useLive(useUid(), (id) => query(households, where('members', 'array-contains', id)), (d) => toHousehold(d.id, d.data()))
+export const useHouseholds = () => useLive(useUid(), householdsOf, (d) => toHousehold(d.id, d.data()))
 
 export const useHouseholdById = (householdId?: string) => useLiveDoc(householdId, household, (data) => data as Pick<Household, 'members' | 'names'>)
 
 export const useLists = (householdId?: string) =>
-  useLive(householdId, (id) => query(lists, where('householdId', '==', id)), (d): List => ({ id: d.id, name: d.data().name, synced: !d.metadata.hasPendingWrites }), true)
+  useLive(householdId, listsOf, (d): List => ({ id: d.id, name: d.data().name, synced: !d.metadata.hasPendingWrites }), true)
 
 const syncedId = (list?: List) => (list?.synced ? list.id : undefined)
 
@@ -112,6 +123,11 @@ export function addItem(listId: string, name: string, existing: Item[]) {
   else if (match.checked) setChecked(listId, match.id, false)
   setDoc(doc(history(listId), historyKey(name)), { name, count: increment(1) }, { merge: true }).catch(fail)
 }
+
+export const deleteItem = (listId: string, itemId: string) => deleteDoc(doc(items(listId), itemId)).catch(fail)
+
+export const restoreItem = (listId: string, { id, ...item }: Item) =>
+  setDoc(doc(items(listId), id), { ...item, createdAt: Timestamp.fromMillis(item.createdAt) }).catch(fail)
 
 export function clearChecked(listId: string, all: Item[]) {
   const batch = writeBatch(db)

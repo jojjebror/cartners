@@ -26,6 +26,8 @@ export const HAPTIC_VIBRATE_MS = 10
 export const UNDO_MS = 4000
 export const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
 export const MOTION = { easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)', page: { durationMs: 240, shiftPx: 28 }, moveMs: 260, exitMs: 200 }
+export const SWIPE = { slopPx: 10, removeRatio: 0.4 }
+export const KEYBOARD_INSET_VAR = '--keyboard-inset'
 export const SPLASH = { id: 'splash', showMs: 2000, fadeMs: 300, logoPx: 112 }
 
 export const NAV_LABELS = { main: 'Huvudmeny', lists: 'Listor', often: 'Ofta köpt', settings: 'Inställningar' }
@@ -43,6 +45,11 @@ export const LABELS = {
   clearChecked: 'Rensa avbockade',
   undo: 'Ångra',
   checked: (name: string) => `${name} i korgen`,
+  removed: (name: string) => `${name} borttagen`,
+  left: 'kvar',
+  inBasket: 'I korgen',
+  basketOf: (done: number, total: number) => `${done} av ${total} i korgen`,
+  emptyList: 'Inga varor än',
   notFound: 'Sidan finns inte.',
   goHome: 'Till era listor',
   noLists: 'Inga listor än. Skapa en och dela den med den du handlar med.',
@@ -66,6 +73,7 @@ export const LABELS = {
   join: 'Gå med',
   joinGone: 'Inbjudan gäller inte längre.',
   listMissing: 'Listan finns inte i ert hushåll.',
+  listOptions: 'Alternativ för listan',
   deleteList: 'Ta bort listan',
   deleteListHint: (name: string) => `${name} och alla varor på den försvinner för hela hushållet.`,
   cancel: 'Avbryt',

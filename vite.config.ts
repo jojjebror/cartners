@@ -28,6 +28,7 @@ const htmlConstants: Record<string, string> = {
   SPLASH_LOGO_PX: String(SPLASH.logoPx),
   SPLASH_CONTENT: splashContent,
   LOGO_PAPER: colors.paper,
+  LOGO_HIGHLIGHT: colors.highlight,
   MOTION_EASING: MOTION.easing,
 }
 

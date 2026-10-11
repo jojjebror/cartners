@@ -1,4 +1,4 @@
-import { ArrowLeft, Moon, Share2, Sun } from 'lucide-react'
+import { ArrowLeft, Ellipsis, Moon, Share2, Sun } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { APP_NAME, ICON_SIZE, LABELS, LOGO_SIZES, THEME_TOGGLE_LABELS, paths } from '../../shared/constants'
 import { useTheme } from '../theme'
@@ -11,7 +11,7 @@ export function useBack() {
   return () => (key === 'default' ? navigate(paths.home, { replace: true }) : navigate(-1))
 }
 
-export function AppHeader({ back, onShare }: { back?: boolean; onShare?: () => void }) {
+export function AppHeader({ back, onShare, onMore }: { back?: boolean; onShare?: () => void; onMore?: () => void }) {
   const { theme, choose } = useTheme()
   const ThemeIcon = theme === 'dark' ? Sun : Moon
   const goBack = useBack()
@@ -45,6 +45,11 @@ export function AppHeader({ back, onShare }: { back?: boolean; onShare?: () => v
           <HapticButton className="icon-button" onClick={() => choose(theme === 'dark' ? 'light' : 'dark')} aria-label={THEME_TOGGLE_LABELS[theme]}>
             <ThemeIcon size={ICON_SIZE} aria-hidden="true" />
           </HapticButton>
+          {onMore && (
+            <HapticButton className="icon-button" onClick={onMore} aria-label={LABELS.listOptions} aria-haspopup="dialog">
+              <Ellipsis size={ICON_SIZE} aria-hidden="true" />
+            </HapticButton>
+          )}
         </div>
       </div>
     </header>

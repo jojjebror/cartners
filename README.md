@@ -1,6 +1,6 @@
 # Lappen
 
-A shared shopping list, built as an installable web app for phones. Add an item on one phone and it shows up on the other. Tap an item to cross it off. Items you have added before are suggested as you type.
+A shared shopping list, built as an installable web app for phones. Add an item on one phone and it shows up on the other. Tap an item to cross it off, or swipe it to the left to remove it. Items you have added before are suggested as you type.
 
 ## Stack
 
