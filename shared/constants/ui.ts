@@ -27,7 +27,6 @@ export const UNDO_MS = 4000
 export const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
 export const MOTION = { easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)', page: { durationMs: 240, shiftPx: 28 }, moveMs: 260, exitMs: 200 }
 export const SWIPE = { slopPx: 10, removeRatio: 0.4 }
-export const KEYBOARD_INSET_VAR = '--keyboard-inset'
 export const SPLASH = { id: 'splash', showMs: 2000, fadeMs: 300, logoPx: 112 }
 
 export const NAV_LABELS = { main: 'Huvudmeny', lists: 'Listor', often: 'Ofta köpt', settings: 'Inställningar' }
@@ -46,6 +45,9 @@ export const LABELS = {
   undo: 'Ångra',
   checked: (name: string) => `${name} i korgen`,
   removed: (name: string) => `${name} borttagen`,
+  done: 'Klar',
+  earlier: 'Tidigare tillagda',
+  historyEmpty: 'Här hamnar det ni lägger till, så att ni hittar det snabbt nästa gång.',
   left: 'kvar',
   inBasket: 'I korgen',
   basketOf: (done: number, total: number) => `${done} av ${total} i korgen`,

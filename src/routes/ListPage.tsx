@@ -2,14 +2,15 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Check, ChevronDown, Plus, Trash2 } from 'lucide-react'
 import { useParams } from 'react-router'
-import { LABELS, LIST_PARAM, MOTION, SMALL_ICON_SIZE, UNDO_MS } from '../../shared/constants'
+import { ICON_SIZE, LABELS, LIST_PARAM, MOTION, SMALL_ICON_SIZE, UNDO_MS } from '../../shared/constants'
 import { AddField } from '../components/AddField'
 import { AppHeader, useBack } from '../components/AppHeader'
 import { HapticButton } from '../components/HapticButton'
-import { sortItems, suggest, type Item } from '../data/items'
+import { HistoryRows } from '../components/HistoryRows'
+import { onListNames, sortItems, suggest, type Item } from '../data/items'
 import { addItem, clearChecked, deleteItem, deleteList, rememberList, restoreItem, setChecked, useHistory, useItems, useLists } from '../data/store'
 import { useHousehold } from '../household'
-import { useFlip, useKeyboardInset, usePresence, useSwipeAway } from '../motion'
+import { useFlip, usePresence, useSwipeAway } from '../motion'
 
 export function ListPage() {
   const id = useParams()[LIST_PARAM]!
@@ -23,6 +24,8 @@ export function ListPage() {
   const [clearing, setClearing] = useState(false)
   const [confirming, setConfirming] = useState(false)
   const options = useRef<HTMLDialogElement>(null)
+  const adder = useRef<HTMLDialogElement>(null)
+  const field = useRef<HTMLInputElement>(null)
   const goBack = useBack()
   const toast = usePresence(undo)
   const [basketOpen, setBasketOpen] = useState(false)
@@ -31,7 +34,7 @@ export function ListPage() {
   const left = sorted.length - basket.length
   const rows = useFlip<HTMLDivElement>(sorted.map((i) => `${i.id}:${i.checked}`).join())
   const swipe = useSwipeAway()
-  useKeyboardInset()
+  const matches = suggest(history.docs, input)
 
   useEffect(() => rememberList(id), [id])
 
@@ -65,6 +68,11 @@ export function ListPage() {
     }, MOTION.exitMs)
   }
 
+  const openAdder = () => {
+    adder.current?.showModal()
+    field.current?.focus()
+  }
+
   const remove = () => {
     deleteList(id)
     goBack()
@@ -80,7 +88,7 @@ export function ListPage() {
       {...swipe(() => discard(item))}
     >
       <span className="row-name">{item.name}</span>
-      <span className="check-box">{item.checked && <Check size={SMALL_ICON_SIZE + 1} strokeWidth={3.5} aria-hidden="true" />}</span>
+      {item.checked && <Check className="row-check reveal" size={ICON_SIZE} strokeWidth={3} aria-hidden="true" />}
       <span className="swipe-action" aria-hidden="true">
         <Trash2 size={SMALL_ICON_SIZE} aria-hidden="true" />
         {LABELS.delete}
@@ -133,18 +141,25 @@ export function ListPage() {
       </main>
       {createPortal(
         <div className="dock reveal">
-          <div className="chips">
-            {suggest(history.docs, input, items.docs).map((s) => (
-              <button key={s.name} className="chip reveal" onPointerDown={(e) => e.preventDefault()} onClick={() => add(s.name)}>
-                <Plus size={SMALL_ICON_SIZE - 2} strokeWidth={3} aria-hidden="true" />
-                {s.name}
-              </button>
-            ))}
-          </div>
-          <AddField value={input} onChange={setInput} onSubmit={() => add(input)} placeholder={LABELS.addItem} />
+          <HapticButton className="solid-button dock-add" disabled={!list} onClick={openAdder}>
+            {LABELS.add}
+            <Plus size={SMALL_ICON_SIZE + 2} strokeWidth={3} aria-hidden="true" />
+          </HapticButton>
         </div>,
         document.body,
       )}
+      <dialog ref={adder} className="adder" aria-label={LABELS.addItem} onClose={() => setInput('')}>
+        <div className="adder-bar">
+          <AddField ref={field} value={input} onChange={setInput} onSubmit={() => add(input)} placeholder={LABELS.addItem} />
+          <button className="text-button" onClick={() => adder.current?.close()}>
+            {LABELS.done}
+          </button>
+        </div>
+        <div className="adder-body" onTouchMove={() => field.current?.blur()}>
+          <h2 className="section-title">{LABELS.earlier}</h2>
+          {matches.length > 0 ? <HistoryRows entries={matches} onList={onListNames(items.docs)} onAdd={add} /> : !input.trim() && <p className="hint">{LABELS.historyEmpty}</p>}
+        </div>
+      </dialog>
       <dialog ref={options} className="sheet" aria-label={LABELS.listOptions} onClose={() => setConfirming(false)} onClick={(e) => e.target === e.currentTarget && options.current?.close()}>
         {list && (
           <div className="sheet-body stack-tight">

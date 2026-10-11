@@ -3,19 +3,26 @@ import { HAPTIC_VIBRATE_MS } from '../../shared/constants'
 
 const hasSwitchHaptics = () => 'switch' in HTMLInputElement.prototype
 
-export function HapticButton({ className, onClick, children, ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
-  const switchHaptics = hasSwitchHaptics()
+function haptic() {
+  if (!hasSwitchHaptics()) return void navigator.vibrate?.(HAPTIC_VIBRATE_MS)
+  const label = document.createElement('label')
+  const input = label.appendChild(document.createElement('input'))
+  input.type = 'checkbox'
+  input.setAttribute('switch', '')
+  label.hidden = true
+  document.body.append(label)
+  label.click()
+  label.remove()
+}
+
+export function HapticButton({ onClick, ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
       {...props}
-      className={className ? `${className} haptic` : 'haptic'}
       onClick={(event) => {
-        if (!switchHaptics) navigator.vibrate?.(HAPTIC_VIBRATE_MS)
+        haptic()
         onClick?.(event)
       }}
-    >
-      {children}
-      {switchHaptics && <input type="checkbox" className="haptic-switch" ref={(input) => input?.setAttribute('switch', '')} aria-hidden="true" tabIndex={-1} />}
-    </button>
+    />
   )
 }

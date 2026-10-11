@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent, type SyntheticEvent } from 'react'
-import { KEYBOARD_INSET_VAR, MOTION, REDUCED_MOTION_QUERY, SPLASH, SWIPE, paths } from '../shared/constants'
+import { MOTION, REDUCED_MOTION_QUERY, SPLASH, SWIPE, paths } from '../shared/constants'
 
 const reduced = () => matchMedia(REDUCED_MOTION_QUERY).matches
 
@@ -90,22 +90,6 @@ export function useSwipeAway() {
       e.stopPropagation()
     },
   })
-}
-
-export function useKeyboardInset() {
-  useEffect(() => {
-    const viewport = window.visualViewport
-    if (!viewport) return
-    const root = document.documentElement.style
-    const update = () => root.setProperty(KEYBOARD_INSET_VAR, `${Math.max(0, innerHeight - viewport.height - viewport.offsetTop)}px`)
-    viewport.addEventListener('resize', update)
-    viewport.addEventListener('scroll', update)
-    return () => {
-      viewport.removeEventListener('resize', update)
-      viewport.removeEventListener('scroll', update)
-      root.removeProperty(KEYBOARD_INSET_VAR)
-    }
-  }, [])
 }
 
 export const withViewTransition = (update: () => void) =>
