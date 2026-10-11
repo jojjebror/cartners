@@ -3,7 +3,7 @@ import { HAPTIC_VIBRATE_MS } from '../../shared/constants'
 
 const hasSwitchHaptics = () => 'switch' in HTMLInputElement.prototype
 
-function haptic() {
+export function haptic() {
   if (!hasSwitchHaptics()) return void navigator.vibrate?.(HAPTIC_VIBRATE_MS)
   const label = document.createElement('label')
   const input = label.appendChild(document.createElement('input'))

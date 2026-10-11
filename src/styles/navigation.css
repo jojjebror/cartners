@@ -5,8 +5,11 @@
   background: var(--bg);
   padding-top: env(safe-area-inset-top);
   border-bottom: 1px solid var(--line);
+  transition: border-color 160ms ease;
 }
+.top.flat { border-bottom-color: transparent; }
 .bar {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -15,6 +18,23 @@
   padding-inline: max(var(--gutter), env(safe-area-inset-left)) max(var(--gutter), env(safe-area-inset-right));
 }
 .bar-actions { display: flex; align-items: center; gap: 8px; }
+.bar-title {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  max-width: 44%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 600 16px/1 var(--font-display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0;
+  translate: -50% -50%;
+  transition: opacity 160ms ease;
+  pointer-events: none;
+}
+.bar-title.shown { opacity: 1; }
 .wordmark {
   display: flex;
   align-items: center;

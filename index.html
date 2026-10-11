@@ -12,7 +12,7 @@
     <title>%APP_NAME%</title>
     <style>
       @import '@fontsource/teko/600.css';
-      :root { --theme-light: %THEME_LIGHT%; --theme-dark: %THEME_DARK%; --highlight: %LOGO_HIGHLIGHT%; --font-wordmark: 'Teko', 'Arial Narrow', sans-serif; }
+      :root { --theme-light: %THEME_LIGHT%; --theme-dark: %THEME_DARK%; --font-wordmark: 'Teko', 'Arial Narrow', sans-serif; }
       #%SPLASH_ID% { position: fixed; inset: 0; z-index: 10; display: grid; place-content: center; justify-items: center; gap: 16px; background: var(--theme-dark); }
       body:has(> #%SPLASH_ID%:not([inert])) { background: var(--theme-dark); }
       body:has(> #%SPLASH_ID%:not([inert])) > #root { visibility: hidden; }

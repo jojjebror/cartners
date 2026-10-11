@@ -1,5 +1,6 @@
-import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent, type SyntheticEvent } from 'react'
-import { MOTION, REDUCED_MOTION_QUERY, SPLASH, SWIPE, paths } from '../shared/constants'
+import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent, type RefObject, type SyntheticEvent } from 'react'
+import { DRAG, MOTION, REDUCED_MOTION_QUERY, SPLASH, STANDALONE_QUERY, paths } from '../shared/constants'
+import { haptic } from './components/HapticButton'
 
 const reduced = () => matchMedia(REDUCED_MOTION_QUERY).matches
 
@@ -48,48 +49,81 @@ export function usePresence<T>(value: T | undefined) {
   return { shown: value ?? shown, leaving: value === undefined && shown !== undefined }
 }
 
-export function useSwipeAway() {
-  const drag = useRef<{ el: HTMLElement; id: number; x: number; y: number; dx: number; horizontal?: boolean }>(undefined)
-  const swiped = useRef(false)
+export function useDragAway({ axis, sign, ratio, from }: { axis: 'x' | 'y'; sign: 1 | -1; ratio: number; from?: (e: PointerEvent<HTMLElement>) => boolean }) {
+  const drag = useRef<{ els: HTMLElement[]; id: number; x: number; y: number; d: number; t: number; v: number; on?: boolean }>(undefined)
+  const dragged = useRef(false)
+  const shift = (d: number | string) => (axis === 'x' ? `${d} 0` : `0 ${d}`)
 
   const release = (onAway?: () => void) => {
-    const d = drag.current
+    const g = drag.current
     drag.current = undefined
-    if (!d?.horizontal) return
-    const away = onAway && -d.dx > d.el.offsetWidth * SWIPE.removeRatio
-    d.el.style.translate = ''
+    if (!g?.on) return
+    const size = axis === 'x' ? g.els[0].offsetWidth : g.els[0].offsetHeight
+    const away = onAway && (sign * g.d > size * ratio || sign * g.v > DRAG.flickPxPerMs)
+    if (away) haptic()
     const duration = reduced() ? 0 : away ? MOTION.exitMs : MOTION.moveMs
-    const slide = d.el.animate({ translate: [`${d.dx}px`, away ? '-100%' : '0'] }, { duration, easing: MOTION.easing, fill: away ? 'forwards' : 'none' })
-    if (away) slide.finished.then(onAway)
+    const slides = g.els.map((el) => {
+      el.style.translate = ''
+      return el.animate({ translate: [shift(`${g.d}px`), shift(away ? `${sign * 100}%` : 0)] }, { duration, easing: MOTION.easing, fill: away ? 'forwards' : 'none' })
+    })
+    if (away) slides[0].finished.then(onAway)
   }
 
-  return (onAway: () => void) => ({
+  return (onAway: () => void, els: (el: HTMLElement) => (HTMLElement | null)[] = (el) => [el]) => ({
     onPointerDown: (e: PointerEvent<HTMLElement>) => {
-      drag.current = { el: e.currentTarget, id: e.pointerId, x: e.clientX, y: e.clientY, dx: 0 }
-      swiped.current = false
+      dragged.current = false
+      if (from && !from(e)) return
+      drag.current = { els: els(e.currentTarget).filter((el) => el !== null), id: e.pointerId, x: e.clientX, y: e.clientY, d: 0, t: e.timeStamp, v: 0 }
     },
     onPointerMove: (e: PointerEvent<HTMLElement>) => {
-      const d = drag.current
-      if (d?.id !== e.pointerId) return
-      const dx = e.clientX - d.x
-      const dy = e.clientY - d.y
-      if (d.horizontal === undefined) {
-        if (Math.hypot(dx, dy) < SWIPE.slopPx) return
-        d.horizontal = swiped.current = -dx > Math.abs(dy)
-        if (d.horizontal) d.el.setPointerCapture(e.pointerId)
+      const g = drag.current
+      if (g?.id !== e.pointerId) return
+      const along = axis === 'x' ? e.clientX - g.x : e.clientY - g.y
+      const across = axis === 'x' ? e.clientY - g.y : e.clientX - g.x
+      if (g.on === undefined) {
+        if (Math.hypot(along, across) < DRAG.slopPx) return
+        g.on = dragged.current = sign * along > Math.abs(across)
+        if (g.on) e.currentTarget.setPointerCapture(e.pointerId)
       }
-      if (!d.horizontal) return
-      d.dx = Math.min(0, dx)
-      d.el.style.translate = `${d.dx}px`
+      if (!g.on) return
+      const d = sign > 0 ? Math.max(0, along) : Math.min(0, along)
+      g.v = (d - g.d) / Math.max(1, e.timeStamp - g.t)
+      g.t = e.timeStamp
+      g.d = d
+      g.els.forEach((el) => (el.style.translate = shift(`${d}px`)))
     },
     onPointerUp: () => release(onAway),
     onPointerCancel: () => release(),
     onClickCapture: (e: SyntheticEvent) => {
-      if (!swiped.current) return
+      if (!dragged.current) return
       e.preventDefault()
       e.stopPropagation()
     },
   })
+}
+
+export function useScrolledPast<T extends HTMLElement>(header: RefObject<HTMLElement | null>) {
+  const ref = useRef<T>(null)
+  const [past, setPast] = useState(false)
+  useEffect(() => {
+    const update = () => setPast(!!ref.current && !!header.current && ref.current.getBoundingClientRect().bottom <= header.current.getBoundingClientRect().bottom)
+    update()
+    addEventListener('scroll', update, { passive: true })
+    return () => removeEventListener('scroll', update)
+  }, [])
+  return [ref, past] as const
+}
+
+export const standalone = () => matchMedia(STANDALONE_QUERY).matches
+
+export function shut(dialog: HTMLDialogElement) {
+  dialog.close()
+  dialog.getAnimations().forEach((a) => a.cancel())
+}
+
+export function dismiss(dialog: HTMLDialogElement | null) {
+  if (!dialog) return
+  dialog.animate({ translate: ['0 0', '0 100%'] }, { duration: reduced() ? 0 : MOTION.exitMs, easing: 'ease-in', fill: 'forwards' }).finished.then(() => shut(dialog))
 }
 
 export const withViewTransition = (update: () => void) =>
