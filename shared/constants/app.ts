@@ -1,4 +1,4 @@
-export const APP_NAME = 'Lappen'
+export const APP_NAME = 'Cartners'
 export const APP_DESCRIPTION = 'En delad inköpslista'
 export const APP_LOGO = '/logo.svg'
 export const LANG = 'sv'
@@ -7,14 +7,8 @@ export const LOCALE = 'sv-SE'
 export const LOGO_DRAWING = {
   viewBox: '0 0 512 512',
   badge: { size: 512, rx: 112 },
-  paper: 'M150 96 H362 V404 L335 384 L308 404 L282 384 L256 404 L230 384 L204 404 L177 384 L150 404 Z',
-  lines: [
-    { x: 186, y: 150, width: 140 },
-    { x: 186, y: 214, width: 100 },
-    { x: 186, y: 278, width: 140, highlight: true },
-  ],
-  line: { height: 26, rx: 13, opacity: 0.25 },
-  check: { d: 'M244 318 L298 368 L414 236', width: 32, outline: 60 },
+  cart: { frame: 'M92 138 H142 L190 326 H382 L414 198 H157', width: 30, wheels: [214, 360], wheelY: 384, wheelRadius: 24 },
+  check: { d: 'M222 236 L274 284 L412 132', width: 36, outline: 66 },
   colors: { badge: '#0d0f12', paper: '#eceef1', highlight: '#ffcf3a', check: '#4fd486' },
 }
 

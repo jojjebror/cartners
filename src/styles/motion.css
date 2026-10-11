@@ -1,12 +1,13 @@
 .reveal { animation: reveal 220ms ease-out; }
 @keyframes reveal { from { opacity: 0; transform: translateY(6px); } }
 
-.back, .text-button, .icon-button, .chip, .outline-button, .solid-button, .add-button, .round-add, .list-card, .wordmark, .nav-tab, .segmented > *, .row, .add {
+.back, .text-button, .icon-button, .chip, .outline-button, .solid-button, .add-button, .round-add, .wordmark, .nav-tab, .segmented > *, .row, .add {
   transition: transform 120ms ease-out, color 160ms ease, background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
 }
-:is(.back, .text-button, .icon-button, .chip, .outline-button:enabled, .solid-button:enabled, .add-button, .round-add:enabled, .list-card, .wordmark):active { transform: scale(0.95); }
+:is(.back, .text-button, .icon-button, .chip, .outline-button:enabled, .solid-button:enabled, .add-button, .round-add:enabled, .wordmark):active { transform: scale(0.95); }
 .nav-tab:active svg { transform: scale(0.88); }
 .nav-tab svg { transition: transform 120ms ease-out; }
+.basket svg { transition: transform 200ms ease; }
 .row-name { transition: color 200ms ease; }
 
 .leaving.row { animation: row-out 200ms ease-in forwards; }
@@ -17,8 +18,13 @@
 @keyframes toast-in { from { opacity: 0; transform: translateY(12px); } }
 @keyframes toast-out { to { opacity: 0; transform: translateY(12px); } }
 
+.sheet[open] { animation: sheet-in 260ms var(--easing); }
+.sheet[open]::backdrop { animation: fade-in 260ms ease; }
+@keyframes sheet-in { from { transform: translateY(100%); } }
+@keyframes fade-in { from { opacity: 0; } }
+
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 240ms; animation-timing-function: ease; }
-.item:active { background: var(--surface-2); }
+:is(.item, .list-row):active { background: var(--surface-2); }
 .check-box { transition: background-color 160ms ease, border-color 160ms ease; }
 
 .haptic { position: relative; }
@@ -38,6 +44,6 @@
 .segmented::before { transition: transform 240ms var(--easing); }
 
 @media (prefers-reduced-motion: reduce) {
-  .reveal, .toast, .toast.leaving, .leaving.row { animation: none; }
-  .segmented::before, .bottom-nav::before { transition: none; }
+  .reveal, .toast, .toast.leaving, .leaving.row, .sheet[open], .sheet[open]::backdrop { animation: none; }
+  .segmented::before, .bottom-nav::before, .basket svg { transition: none; }
 }

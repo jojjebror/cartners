@@ -1,5 +1,5 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { MOTION, REDUCED_MOTION_QUERY, SPLASH, paths } from '../shared/constants'
+import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent, type SyntheticEvent } from 'react'
+import { KEYBOARD_INSET_VAR, MOTION, REDUCED_MOTION_QUERY, SPLASH, SWIPE, paths } from '../shared/constants'
 
 const reduced = () => matchMedia(REDUCED_MOTION_QUERY).matches
 
@@ -46,6 +46,66 @@ export function usePresence<T>(value: T | undefined) {
     return () => clearTimeout(timer)
   }, [value])
   return { shown: value ?? shown, leaving: value === undefined && shown !== undefined }
+}
+
+export function useSwipeAway() {
+  const drag = useRef<{ el: HTMLElement; id: number; x: number; y: number; dx: number; horizontal?: boolean }>(undefined)
+  const swiped = useRef(false)
+
+  const release = (onAway?: () => void) => {
+    const d = drag.current
+    drag.current = undefined
+    if (!d?.horizontal) return
+    const away = onAway && -d.dx > d.el.offsetWidth * SWIPE.removeRatio
+    d.el.style.translate = ''
+    const duration = reduced() ? 0 : away ? MOTION.exitMs : MOTION.moveMs
+    const slide = d.el.animate({ translate: [`${d.dx}px`, away ? '-100%' : '0'] }, { duration, easing: MOTION.easing, fill: away ? 'forwards' : 'none' })
+    if (away) slide.finished.then(onAway)
+  }
+
+  return (onAway: () => void) => ({
+    onPointerDown: (e: PointerEvent<HTMLElement>) => {
+      drag.current = { el: e.currentTarget, id: e.pointerId, x: e.clientX, y: e.clientY, dx: 0 }
+      swiped.current = false
+    },
+    onPointerMove: (e: PointerEvent<HTMLElement>) => {
+      const d = drag.current
+      if (d?.id !== e.pointerId) return
+      const dx = e.clientX - d.x
+      const dy = e.clientY - d.y
+      if (d.horizontal === undefined) {
+        if (Math.hypot(dx, dy) < SWIPE.slopPx) return
+        d.horizontal = swiped.current = -dx > Math.abs(dy)
+        if (d.horizontal) d.el.setPointerCapture(e.pointerId)
+      }
+      if (!d.horizontal) return
+      d.dx = Math.min(0, dx)
+      d.el.style.translate = `${d.dx}px`
+    },
+    onPointerUp: () => release(onAway),
+    onPointerCancel: () => release(),
+    onClickCapture: (e: SyntheticEvent) => {
+      if (!swiped.current) return
+      e.preventDefault()
+      e.stopPropagation()
+    },
+  })
+}
+
+export function useKeyboardInset() {
+  useEffect(() => {
+    const viewport = window.visualViewport
+    if (!viewport) return
+    const root = document.documentElement.style
+    const update = () => root.setProperty(KEYBOARD_INSET_VAR, `${Math.max(0, innerHeight - viewport.height - viewport.offsetTop)}px`)
+    viewport.addEventListener('resize', update)
+    viewport.addEventListener('scroll', update)
+    return () => {
+      viewport.removeEventListener('resize', update)
+      viewport.removeEventListener('scroll', update)
+      root.removeProperty(KEYBOARD_INSET_VAR)
+    }
+  }, [])
 }
 
 export const withViewTransition = (update: () => void) =>

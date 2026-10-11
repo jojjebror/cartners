@@ -5,7 +5,10 @@
   --radius: 4px;
   --gutter: 16px;
   --max-width: 640px;
-  --nav-height: 64px;
+  --nav-height: 58px;
+  --dock-height: 62px;
+  --edge-start: max(var(--gutter), env(safe-area-inset-left));
+  --edge-end: max(var(--gutter), env(safe-area-inset-right));
   --easing: cubic-bezier(0.2, 0.8, 0.2, 1);
 
   --panel: #07080a;
@@ -13,6 +16,7 @@
   --panel-text: #eceef1;
   --panel-muted: #8b929c;
   --mark: #4fd486;
+  --on-highlight: var(--panel);
 
   --bg: var(--theme-light);
   --surface: #ffffff;
