@@ -6,7 +6,7 @@
   --gutter: 16px;
   --max-width: 640px;
   --nav-height: 58px;
-  --dock-height: 62px;
+  --dock-height: 57px;
   --edge-start: max(var(--gutter), env(safe-area-inset-left));
   --edge-end: max(var(--gutter), env(safe-area-inset-right));
   --easing: cubic-bezier(0.2, 0.8, 0.2, 1);

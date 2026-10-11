@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { MAX_OFTEN, MAX_SUGGESTIONS } from '../../shared/constants'
+import { MAX_OFTEN } from '../../shared/constants'
 import { historyKey, oftenBought, primaryHousehold, sortItems, suggest, type HistoryEntry, type Item } from './items'
 
 const item = (name: string, checked = false, createdAt = 0): Item => ({ id: name, name, checked, createdAt })
@@ -26,18 +26,11 @@ describe('suggest', () => {
   ]
 
   it('matches by prefix, most used first', () => {
-    expect(suggest(history, 'sch', []).map((h) => h.name)).toEqual(['Schweizernöt', 'Schampo'])
+    expect(suggest(history, 'sch').map((h) => h.name)).toEqual(['Schweizernöt', 'Schampo'])
   })
 
-  it('skips items already on the list unless they are crossed off', () => {
-    expect(suggest(history, 'sch', [item('schampo')]).map((h) => h.name)).toEqual(['Schweizernöt'])
-    expect(suggest(history, 'sch', [item('schampo', true)])).toHaveLength(2)
-  })
-
-  it('returns nothing for empty input and caps the result', () => {
-    const many = Array.from({ length: MAX_SUGGESTIONS + 3 }, (_, i) => ({ name: `a${i}`, count: i }))
-    expect(suggest(history, ' ', [])).toEqual([])
-    expect(suggest(many, 'a', [])).toHaveLength(MAX_SUGGESTIONS)
+  it('lists the whole history when nothing is typed', () => {
+    expect(suggest(history, ' ').map((h) => h.name)).toEqual(['Mjölk', 'Schweizernöt', 'Schampo'])
   })
 })
 

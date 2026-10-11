@@ -57,7 +57,7 @@ mark { padding-inline: 5px; background: linear-gradient(transparent 12%, var(--h
 .dock {
   position: fixed;
   inset-inline: 0;
-  bottom: max(calc(var(--nav-height) + env(safe-area-inset-bottom)), var(--keyboard-inset, 0px));
+  bottom: calc(var(--nav-height) + env(safe-area-inset-bottom));
   z-index: 2;
   display: grid;
   gap: 8px;
@@ -67,22 +67,13 @@ mark { padding-inline: 5px; background: linear-gradient(transparent 12%, var(--h
   border-top: 1px solid var(--line);
   background: var(--bg);
 }
+.dock-add { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
 .body.docked { padding-bottom: calc(var(--nav-height) + var(--dock-height) + 24px + env(safe-area-inset-bottom)); }
 
-.check-box {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 26px;
-  height: 26px;
-  border: 2px solid var(--muted);
-  border-radius: 50%;
-  color: var(--on-accent);
-}
+.row-check { flex: none; color: var(--accent); }
 .item[aria-pressed='true'] { color: var(--muted); }
 .item[aria-pressed='true'] .row-name { text-decoration: line-through; }
-.item[aria-pressed='true'] .check-box { border-color: var(--accent); background: var(--accent); }
-.item { touch-action: pan-y; }
+.item { position: relative; touch-action: pan-y; }
 .swipe-action {
   position: absolute;
   inset-block: 0;
@@ -112,9 +103,7 @@ mark { padding-inline: 5px; background: linear-gradient(transparent 12%, var(--h
 .add input::placeholder { color: var(--muted); }
 .add-button { display: grid; place-items: center; width: 38px; border: 0; border-radius: var(--radius); background: var(--accent); color: var(--on-accent); }
 
-.chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.chips:empty { display: none; }
-.chip, .outline-button {
+.outline-button {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -155,6 +144,22 @@ mark { padding-inline: 5px; background: linear-gradient(transparent 12%, var(--h
 }
 .sheet::backdrop { background: rgb(0 0 0 / 0.5); }
 .sheet-body { padding: 20px max(var(--gutter), env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(var(--gutter), env(safe-area-inset-left)); }
+.adder {
+  width: 100%;
+  max-width: var(--max-width);
+  height: 100%;
+  max-height: none;
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+.adder[open] { display: flex; flex-direction: column; }
+.adder::backdrop { background: var(--bg); }
+.adder-bar { display: flex; align-items: center; gap: 12px; padding: calc(10px + env(safe-area-inset-top)) var(--edge-end) 10px var(--edge-start); border-bottom: 1px solid var(--line); }
+.adder-bar .add { flex: 1; }
+.adder-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: grid; align-content: start; gap: 12px; padding: 16px var(--edge-end) calc(24px + env(safe-area-inset-bottom)) var(--edge-start); }
 .confirm-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .confirm-actions .outline-button { padding: 12px 16px; font-size: 15px; }
 .badge {
@@ -167,18 +172,8 @@ mark { padding-inline: 5px; background: linear-gradient(transparent 12%, var(--h
   text-transform: uppercase;
 }
 
-.round-add {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 30px;
-  height: 30px;
-  border: 1.5px solid var(--accent);
-  border-radius: 50%;
-  background: none;
-  color: var(--accent);
-}
-.round-add[aria-pressed='true'] { background: var(--accent); color: var(--on-accent); cursor: default; }
+.pick { min-height: 52px; }
+.pick[aria-pressed='true'] { cursor: default; }
 
 .segmented { position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; padding: 3px; border-radius: calc(var(--radius) + 3px); background: var(--surface-2); }
 .segmented::before {
