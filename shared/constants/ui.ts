@@ -25,8 +25,9 @@ export const LOGO_SIZES = { wordmark: 36 }
 export const HAPTIC_VIBRATE_MS = 10
 export const UNDO_MS = 4000
 export const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
+export const STANDALONE_QUERY = '(display-mode: standalone)'
 export const MOTION = { easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)', page: { durationMs: 240, shiftPx: 28 }, moveMs: 260, exitMs: 200 }
-export const SWIPE = { slopPx: 10, removeRatio: 0.4 }
+export const DRAG = { slopPx: 10, flickPxPerMs: 0.5, edgePx: 24, removeRatio: 0.4, backRatio: 0.35, closeRatio: 0.25 }
 export const SPLASH = { id: 'splash', showMs: 2000, fadeMs: 300, logoPx: 112 }
 
 export const NAV_LABELS = { main: 'Huvudmeny', lists: 'Listor', often: 'Ofta köpt', settings: 'Inställningar' }

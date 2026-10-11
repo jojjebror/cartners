@@ -1,3 +1,4 @@
+import type { Ref } from 'react'
 import { ArrowLeft, Ellipsis, Moon, Share2, Sun } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { APP_NAME, ICON_SIZE, LABELS, LOGO_SIZES, THEME_TOGGLE_LABELS, paths } from '../../shared/constants'
@@ -11,13 +12,18 @@ export function useBack() {
   return () => (key === 'default' ? navigate(paths.home, { replace: true }) : navigate(-1))
 }
 
-export function AppHeader({ back, onShare, onMore }: { back?: boolean; onShare?: () => void; onMore?: () => void }) {
+export function AppHeader({ ref, back, title, titleShown, onShare, onMore }: { ref?: Ref<HTMLElement>; back?: boolean; title?: string; titleShown?: boolean; onShare?: () => void; onMore?: () => void }) {
   const { theme, choose } = useTheme()
   const ThemeIcon = theme === 'dark' ? Sun : Moon
   const goBack = useBack()
   return (
-    <header className="top">
+    <header ref={ref} className={title && !titleShown ? 'top flat' : 'top'}>
       <div className="bar">
+        {title && (
+          <span className={titleShown ? 'bar-title shown' : 'bar-title'} aria-hidden="true">
+            {title}
+          </span>
+        )}
         {back ? (
           <Link
             to={paths.home}

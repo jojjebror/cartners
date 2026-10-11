@@ -134,7 +134,7 @@
   color: var(--text);
 }
 .sheet::backdrop, .adder::backdrop { background: rgb(0 0 0 / 0.5); }
-.sheet-body { padding: 20px max(var(--gutter), env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(var(--gutter), env(safe-area-inset-left)); }
+.sheet-body { padding: 0 max(var(--gutter), env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(var(--gutter), env(safe-area-inset-left)); }
 .adder {
   width: 100%;
   max-width: var(--max-width);
@@ -147,7 +147,11 @@
   color: var(--text);
 }
 .adder[open] { display: flex; flex-direction: column; }
-.adder-bar { display: flex; align-items: center; gap: 12px; padding: calc(10px + env(safe-area-inset-top)) var(--edge-end) 10px var(--edge-start); border-bottom: 1px solid var(--line); }
+.adder-head { padding-top: env(safe-area-inset-top); border-bottom: 1px solid var(--line); }
+.adder-bar { display: flex; align-items: center; gap: 12px; padding: 8px var(--edge-end) 10px var(--edge-start); }
+.grabber { display: block; width: 36px; height: 5px; margin: 6px auto 0; border-radius: 3px; background: var(--line); }
+.drag-handle { touch-action: none; }
+.edge-back { touch-action: pan-y pinch-zoom; }
 .adder-bar .add { flex: 1; }
 .adder-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: grid; align-content: start; gap: 12px; padding: 16px var(--edge-end) calc(24px + env(safe-area-inset-bottom)) var(--edge-start); }
 .confirm-actions { display: flex; justify-content: flex-end; gap: 8px; }

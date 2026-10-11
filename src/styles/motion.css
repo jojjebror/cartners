@@ -18,7 +18,8 @@
 @keyframes toast-in { from { opacity: 0; transform: translateY(12px); } }
 @keyframes toast-out { to { opacity: 0; transform: translateY(12px); } }
 
-:is(.sheet, .adder)[open] { animation: sheet-in 260ms var(--easing); }
+.sheet[open] { animation: sheet-in 260ms var(--easing); }
+.adder[open] { animation: reveal 220ms var(--easing); }
 :is(.sheet, .adder)[open]::backdrop { animation: fade-in 260ms ease; }
 @keyframes sheet-in { from { transform: translateY(100%); } }
 @keyframes fade-in { from { opacity: 0; } }
