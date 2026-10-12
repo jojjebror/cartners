@@ -5,7 +5,7 @@ import { haptic } from './components/HapticButton'
 const reduced = () => matchMedia(REDUCED_MOTION_QUERY).matches
 
 const routeDepth = (path: string) =>
-  path === paths.settings ? 3 : path === paths.often ? 2 : path.startsWith(paths.list('')) || path.startsWith(paths.join('')) ? 1 : 0
+  path.startsWith(paths.join('')) ? 4 : path === paths.settings ? 3 : path === paths.often ? 2 : path.startsWith(paths.list('')) ? 1 : 0
 
 export function usePageSlide<T extends HTMLElement>(pathname: string) {
   const ref = useRef<T>(null)
