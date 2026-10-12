@@ -14,9 +14,10 @@
 
 .bleed { margin-inline: calc(-1 * var(--edge-start)) calc(-1 * var(--edge-end)); border-top: 1px solid var(--line); overflow: hidden; }
 .bleed:empty { display: none; }
-.bleed > * { padding-inline: var(--edge-start) var(--edge-end); border-bottom: 1px solid var(--line); }
-.bleed > .row { min-height: 52px; gap: 12px; }
-.bleed > .row .row-name { font-size: 15px; }
+.bleed > * { border-bottom: 1px solid var(--line); }
+.bleed > :not(.swipe-row), .swipe-row > .item { padding-inline: var(--edge-start) var(--edge-end); }
+.bleed > .row, .swipe-row > .item { min-height: 52px; gap: 12px; }
+:is(.bleed > .row, .swipe-row > .item) .row-name { font-size: 15px; }
 
 .list-row { gap: 12px; padding-block: 12px; }
 .list-row-text { flex: 1; min-width: 0; display: grid; gap: 3px; }
@@ -63,16 +64,17 @@
 .row-check { flex: none; color: var(--accent); }
 .item[aria-pressed='true'] { color: var(--muted); }
 .item[aria-pressed='true'] .row-name { text-decoration: line-through; }
-.item { position: relative; touch-action: pan-y; }
-.swipe-action {
-  position: absolute;
-  inset-block: 0;
-  left: 100%;
+.item { position: relative; touch-action: pan-y; background: var(--bg); }
+.swipe-row { position: relative; overflow: hidden; }
+.swipe-row :focus-visible { outline-offset: -2px; }
+.swipe-action { position: absolute; inset-block: 0; right: 0; display: flex; }
+.swipe-delete {
+  flex: 1;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  width: 100%;
-  padding-inline: 16px;
+  border: 0;
   background: var(--danger);
   color: var(--on-accent);
   font: 600 13px/1 var(--font-display);
