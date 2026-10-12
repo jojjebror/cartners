@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router'
 import { APP_NAME, ICON_SIZE, LABELS, SMALL_ICON_SIZE, THEMES, THEME_LABELS, paths } from '../../shared/constants'
 import { version } from '../../package.json'
 import { AppHeader } from '../components/AppHeader'
-import { HapticButton, haptic } from '../components/HapticButton'
+import { HapticButton } from '../components/HapticButton'
 import { inviteId } from '../data/items'
 import { setName, useUid } from '../data/store'
 import { useHousehold } from '../household'
@@ -19,10 +19,8 @@ function JoinByLink() {
   const [wrong, setWrong] = useState(false)
   const open = () => {
     const id = inviteId(link)
-    if (id) {
-      haptic()
-      navigate(paths.join(id))
-    } else setWrong(link.trim() !== '')
+    if (id) navigate(paths.join(id))
+    else setWrong(link.trim() !== '')
   }
 
   return (
@@ -50,9 +48,9 @@ function JoinByLink() {
           autoCorrect="off"
           spellCheck={false}
         />
-        <button className="add-button" aria-label={LABELS.openInvite}>
+        <HapticButton type="button" className="add-button" aria-label={LABELS.openInvite} onClick={open}>
           <ArrowRight size={ICON_SIZE} strokeWidth={3} aria-hidden="true" />
-        </button>
+        </HapticButton>
       </form>
       {wrong && <p className="hint reveal" role="alert">{LABELS.notInvite}</p>}
     </>

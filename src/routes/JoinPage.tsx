@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Copy } from 'lucide-react'
+import { useIsPresent } from 'motion/react'
 import { Navigate, useNavigate, useParams } from 'react-router'
 import { HOUSEHOLD_PARAM, LABELS, SMALL_ICON_SIZE, paths } from '../../shared/constants'
 import { AppHeader } from '../components/AppHeader'
@@ -16,8 +17,9 @@ export function JoinPage() {
   const own = useLists(household?.id)
   const invited = useHouseholdById(target)
   const [copied, setCopied] = useState(false)
+  const present = useIsPresent()
 
-  if (invited.value?.members.includes(uid)) return <Navigate to={paths.home} replace />
+  if (present && invited.value?.members.includes(uid)) return <Navigate to={paths.home} replace />
   const names = invited.value ? Object.values(invited.value.names).filter(Boolean).join(' och ') : ''
 
   return (

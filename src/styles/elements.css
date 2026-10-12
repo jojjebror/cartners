@@ -11,7 +11,6 @@
 }
 .rows > .row + .row { border-top: 1px solid var(--line); }
 .row-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
-.row-count { color: var(--muted); font: 600 12.5px/1 var(--font-score); font-variant-numeric: tabular-nums; }
 
 .bleed { margin-inline: calc(-1 * var(--edge-start)) calc(-1 * var(--edge-end)); border-top: 1px solid var(--line); overflow: hidden; }
 .bleed:empty { display: none; }
@@ -120,6 +119,7 @@
   text-transform: uppercase;
 }
 .solid-button:disabled { opacity: 0.5; }
+button:disabled > [data-haptic-trigger] { pointer-events: none; }
 .danger { --accent: var(--danger); }
 .sheet {
   width: 100%;
