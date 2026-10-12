@@ -1,58 +1,114 @@
-import { useState, type CSSProperties } from 'react'
-import { ArrowRight, UserPlus } from 'lucide-react'
+import { useRef, useState, type CSSProperties } from 'react'
+import { ArrowRight, Share2, UserPlus } from 'lucide-react'
 import { useNavigate } from 'react-router'
 import { APP_NAME, ICON_SIZE, LABELS, SMALL_ICON_SIZE, THEMES, THEME_LABELS, paths } from '../../shared/constants'
 import { version } from '../../package.json'
 import { AppHeader } from '../components/AppHeader'
 import { HapticButton } from '../components/HapticButton'
-import { inviteId } from '../data/items'
-import { setName, useUid } from '../data/store'
+import { findCode, formatCode } from '../data/items'
+import { createInvite, findInvite, setName, useUid } from '../data/store'
 import { useHousehold } from '../household'
-import { shareLink } from '../share'
+import { shareText } from '../share'
 import { useTheme } from '../theme'
 
-// On an iPhone an invite link opens in Safari, which signs in as someone else than the app on the home
-// screen, so the link can also be pasted here to join from the app itself.
-function JoinByLink() {
+// Invites are short codes rather than links: on an iPhone a link opens in Safari, which is someone else than
+// the app on the home screen, while a code is typed into the app itself.
+function Invite({ householdId }: { householdId: string }) {
+  const uid = useUid()
+  const [code, setCode] = useState<string>()
+  const [state, setState] = useState<'idle' | 'creating' | 'failed'>('idle')
+  const [copied, setCopied] = useState(false)
+  const create = () => {
+    setState('creating')
+    createInvite(householdId, uid).then(
+      (made) => {
+        setCode(made)
+        setState('idle')
+      },
+      () => setState('failed'),
+    )
+  }
+  const share = (made: string) => shareText(LABELS.inviteText(formatCode(made)), LABELS.inviteTitle).then(setCopied, () => undefined)
+
+  return (
+    <>
+      {code ? (
+        <div className="invite reveal">
+          <span className="invite-code">{formatCode(code)}</span>
+          <p className="hint">{LABELS.inviteCode}</p>
+          <HapticButton className="outline-button" onClick={() => share(code)}>
+            <Share2 size={SMALL_ICON_SIZE} strokeWidth={2.5} aria-hidden="true" />
+            {copied ? LABELS.copied : LABELS.shareCode}
+          </HapticButton>
+        </div>
+      ) : (
+        <HapticButton className="outline-button" disabled={state === 'creating'} onClick={create}>
+          <UserPlus size={SMALL_ICON_SIZE} strokeWidth={2.5} aria-hidden="true" />
+          {state === 'creating' ? LABELS.creatingCode : LABELS.invite}
+        </HapticButton>
+      )}
+      {state === 'failed' && (
+        <p className="hint reveal" role="alert">
+          {LABELS.codeFailed}
+        </p>
+      )}
+    </>
+  )
+}
+
+function JoinByCode({ householdId }: { householdId: string }) {
   const navigate = useNavigate()
-  const [link, setLink] = useState('')
-  const [wrong, setWrong] = useState(false)
-  const open = () => {
-    const id = inviteId(link)
-    if (id) navigate(paths.join(id))
-    else setWrong(link.trim() !== '')
+  const [text, setText] = useState('')
+  const [problem, setProblem] = useState<string>()
+  const checking = useRef<string>(undefined)
+  const check = (value: string) => {
+    const code = findCode(value)
+    checking.current = code
+    if (!code) return setProblem(value.trim() ? LABELS.codeWrong : undefined)
+    findInvite(code).then(({ householdId: target, reachable }) => {
+      if (checking.current !== code) return
+      if (!reachable) setProblem(LABELS.codeUnreachable)
+      else if (!target) setProblem(LABELS.codeWrong)
+      else if (target === householdId) setProblem(LABELS.codeOwn)
+      else navigate(paths.join(target))
+    })
   }
 
   return (
     <>
-      <p className="hint">{LABELS.pasteHint}</p>
+      <p className="hint">{LABELS.codeHint}</p>
       <form
         className="add"
         onSubmit={(e) => {
           e.preventDefault()
-          open()
+          check(text)
         }}
       >
         <input
-          value={link}
+          value={text}
           onChange={(e) => {
-            setLink(e.target.value)
-            setWrong(false)
+            setText(e.target.value)
+            setProblem(undefined)
+            if (findCode(e.target.value)) check(e.target.value)
+            else checking.current = undefined
           }}
-          placeholder={LABELS.pasteInvite}
-          aria-label={LABELS.pasteInvite}
+          placeholder={LABELS.codePlaceholder}
+          aria-label={LABELS.codePlaceholder}
           enterKeyHint="go"
-          inputMode="url"
           autoComplete="off"
-          autoCapitalize="none"
+          autoCapitalize="characters"
           autoCorrect="off"
           spellCheck={false}
         />
-        <HapticButton type="button" className="add-button" aria-label={LABELS.openInvite} onClick={open}>
+        <HapticButton type="button" className="add-button" aria-label={LABELS.openCode} onClick={() => check(text)}>
           <ArrowRight size={ICON_SIZE} strokeWidth={3} aria-hidden="true" />
         </HapticButton>
       </form>
-      {wrong && <p className="hint reveal" role="alert">{LABELS.notInvite}</p>}
+      {problem && (
+        <p className="hint reveal" role="alert">
+          {problem}
+        </p>
+      )}
     </>
   )
 }
@@ -61,16 +117,11 @@ function Household() {
   const uid = useUid()
   const { household } = useHousehold()
   const [name, setDraft] = useState<string>()
-  const [copied, setCopied] = useState(false)
   if (!household) return null
   const saved = household.names[uid] ?? ''
   const save = () => {
     if (name !== undefined && name.trim() !== saved) setName(household.id, uid, name.trim())
   }
-  const invite = () =>
-    shareLink(`${location.origin}${paths.join(household.id)}`, LABELS.inviteTitle, LABELS.inviteText)
-      .then(setCopied)
-      .catch(() => undefined)
 
   return (
     <section className="stack-tight reveal">
@@ -94,11 +145,8 @@ function Household() {
         ))}
       </div>
       <p className="hint">{LABELS.inviteHint}</p>
-      <HapticButton className="outline-button" onClick={invite}>
-        <UserPlus size={SMALL_ICON_SIZE} strokeWidth={2.5} aria-hidden="true" />
-        {copied ? LABELS.copied : LABELS.invite}
-      </HapticButton>
-      <JoinByLink />
+      <Invite key={household.id} householdId={household.id} />
+      <JoinByCode householdId={household.id} />
     </section>
   )
 }

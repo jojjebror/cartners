@@ -43,7 +43,7 @@ export function ListPage() {
   const left = sorted.length - basket.length
   const openId = (basketOpen ? sorted : sorted.slice(0, left)).some((i) => i.id === opened) ? opened : undefined
   const rows = useFlip<HTMLDivElement>(sorted.map((i) => `${i.id}:${i.checked}`).join())
-  const edge = useDragAway({ axis: 'x', sign: 1, ratio: DRAG.backRatio, from: (e) => !openId && e.clientX < DRAG.edgePx })
+  const edge = useDragAway({ axis: 'x', sign: 1, ratio: DRAG.backRatio, from: (e) => !openId && e.clientX < DRAG.edgePx, handOff: true })
   const pull = useDragAway({ axis: 'y', sign: 1, ratio: DRAG.closeRatio })
   const pullDown = (dialog: RefObject<HTMLDialogElement | null>) => pull(() => dialog.current && shut(dialog.current), (el) => [el.closest('dialog')])
   const matches = suggest(history.docs, input)

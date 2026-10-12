@@ -27,11 +27,22 @@ service cloud.firestore {
       allow create: if signedIn() && request.resource.data.members == [request.auth.uid];
       allow update: if signedIn() && (
         (request.auth.uid in resource.data.members && changes(['names'])) ||
-        (!(request.auth.uid in resource.data.members) && changes(['members']) &&
-          request.resource.data.members.toSet() == resource.data.members.toSet().union([request.auth.uid].toSet())) ||
+        (!(request.auth.uid in resource.data.members) && changes(['members', 'names']) &&
+          request.resource.data.members.toSet() == resource.data.members.toSet().union([request.auth.uid].toSet()) &&
+          request.resource.data.get('names', {}).diff(resource.data.get('names', {})).affectedKeys().hasOnly([request.auth.uid])) ||
         (request.auth.uid in resource.data.members && changes(['members']) &&
           request.resource.data.members.toSet() == resource.data.members.toSet().difference([request.auth.uid].toSet()))
       );
+    }
+
+    match /invites/{code} {
+      allow get: if signedIn() && resource.data.expiresAt > request.time;
+      allow create: if signedIn() && code.matches('[A-HJKMNP-Z2-9]{6}') &&
+        request.resource.data.keys().hasOnly(['householdId', 'createdBy', 'expiresAt']) &&
+        request.resource.data.createdBy == request.auth.uid &&
+        inHousehold(request.resource.data.householdId) &&
+        request.resource.data.expiresAt is timestamp &&
+        request.resource.data.expiresAt <= request.time + duration.value(8, 'd');
     }
 
     match /lists/{listId} {
