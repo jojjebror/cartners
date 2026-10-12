@@ -22,7 +22,7 @@ export function OftenPage() {
           {!lists.loading && <p className="hint">{target ? LABELS.oftenHint(target.name) : LABELS.oftenEmpty}</p>}
         </div>
         {target && history.docs.length > 0 && (
-          <HistoryRows counted entries={oftenBought(history.docs)} onList={onListNames(items.docs)} onAdd={(name) => addItem(target.id, name, items.docs)} />
+          <HistoryRows entries={oftenBought(history.docs)} onList={onListNames(items.docs)} onAdd={(name) => addItem(target.id, name, items.docs)} />
         )}
       </main>
     </>

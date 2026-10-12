@@ -14,12 +14,15 @@ import {
   setDoc,
   Timestamp,
   updateDoc,
+  waitForPendingWrites,
   where,
   writeBatch,
   type DocumentData,
   type DocumentReference,
   type Query,
   type QueryDocumentSnapshot,
+  type QuerySnapshot,
+  type Unsubscribe,
 } from 'firebase/firestore'
 import { COLLECTIONS, LAST_LIST_STORAGE_KEY } from '../../shared/constants'
 import { db, uid } from '../firebase'
@@ -36,6 +39,28 @@ const listsOf = (householdId: string) => query(lists, where('householdId', '==',
 
 const fail = (e: unknown) => console.error(e)
 
+// The rules refuse a listener whose access rests on a write still on its way to the server, such as a
+// household just created or joined, and a refused listener stops for good. So it starts again once this
+// device's pending writes have landed, and gives up if it is refused again before the server has answered it.
+function listen(q: Query, includeMetadataChanges: boolean, next: (s: QuerySnapshot) => void) {
+  let stop: Unsubscribe
+  let active = true
+  const attempt = (mayRetry: boolean) => {
+    stop = onSnapshot(q, { includeMetadataChanges }, (s) => {
+      if (!s.metadata.fromCache) mayRetry = true
+      next(s)
+    }, (e) => {
+      if (e.code === 'permission-denied' && mayRetry) waitForPendingWrites(db).then(() => active && attempt(false)).catch(fail)
+      else fail(e)
+    })
+  }
+  attempt(true)
+  return () => {
+    active = false
+    stop()
+  }
+}
+
 const latest = new Map<(key: string) => Query, Map<string, unknown[]>>()
 
 function useLive<T>(key: string | undefined, build: (key: string) => Query, map: (d: QueryDocumentSnapshot<DocumentData>) => T, includeMetadataChanges = false) {
@@ -43,11 +68,11 @@ function useLive<T>(key: string | undefined, build: (key: string) => Query, map:
   const [, setDocs] = useState<T[]>()
   useEffect(() => {
     if (!key) return
-    return onSnapshot(build(key), { includeMetadataChanges }, (s) => {
+    return listen(build(key), includeMetadataChanges, (s) => {
       const docs = s.docs.map(map)
       known.set(key, docs)
       setDocs(docs)
-    }, fail)
+    })
   }, [key])
   const docs = key ? (known.get(key) as T[] | undefined) : []
   return { docs: docs ?? [], loading: !docs }

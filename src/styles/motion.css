@@ -10,7 +10,7 @@
 .basket svg { transition: transform 200ms ease; }
 .row-name { transition: color 200ms ease; }
 
-.leaving.row { animation: row-out 200ms ease-in forwards; }
+.leaving:is(.row, .swipe-row) { animation: row-out 200ms ease-in forwards; }
 @keyframes row-out { to { opacity: 0; transform: translateX(24px); } }
 
 .toast { animation: toast-in 240ms var(--easing); }
@@ -30,6 +30,6 @@
 .segmented::before { transition: transform 240ms var(--easing); }
 
 @media (prefers-reduced-motion: reduce) {
-  .reveal, .toast, .toast.leaving, .leaving.row, :is(.sheet, .adder)[open], :is(.sheet, .adder)[open]::backdrop { animation: none; }
+  .reveal, .toast, .toast.leaving, .leaving:is(.row, .swipe-row), :is(.sheet, .adder)[open], :is(.sheet, .adder)[open]::backdrop { animation: none; }
   .segmented::before, .bottom-nav::before, .basket svg { transition: none; }
 }

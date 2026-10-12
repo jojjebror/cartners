@@ -1,23 +1,31 @@
 import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent, type RefObject, type SyntheticEvent } from 'react'
+import type { Transition, Variants } from 'motion/react'
 import { DRAG, MOTION, REDUCED_MOTION_QUERY, SPLASH, STANDALONE_QUERY, paths } from '../shared/constants'
 import { haptic } from './components/HapticButton'
 
 const reduced = () => matchMedia(REDUCED_MOTION_QUERY).matches
 
 const routeDepth = (path: string) =>
-  path === paths.settings ? 3 : path === paths.often ? 2 : path.startsWith(paths.list('')) || path.startsWith(paths.join('')) ? 1 : 0
+  path.startsWith(paths.join('')) ? 4 : path === paths.settings ? 3 : path === paths.often ? 2 : path.startsWith(paths.list('')) ? 1 : 0
 
-export function usePageSlide<T extends HTMLElement>(pathname: string) {
-  const ref = useRef<T>(null)
-  const shown = useRef(pathname)
-  useLayoutEffect(() => {
-    const direction = Math.sign(routeDepth(pathname) - routeDepth(shown.current))
-    shown.current = pathname
-    if (reduced()) return
-    const { durationMs, shiftPx } = MOTION.page
-    ref.current?.animate({ opacity: [0, 1], transform: [`translateX(${direction * shiftPx}px)`, 'none'] }, { duration: durationMs, easing: MOTION.easing })
-  }, [pathname])
-  return ref
+export function useSlideDirection(pathname: string) {
+  const [last, setLast] = useState({ pathname, direction: 1 })
+  if (last.pathname === pathname) return last.direction
+  const next = { pathname, direction: routeDepth(pathname) < routeDepth(last.pathname) ? -1 : 1 }
+  setLast(next)
+  return next.direction
+}
+
+// A page reached further in slides in over the one it leaves, which drifts back and dims, as on iOS. Going
+// back plays it in reverse: the page on top slides away and uncovers the one below.
+const slide: Transition = { type: 'spring', visualDuration: MOTION.page.seconds, bounce: 0, zIndex: { duration: 0 } }
+const below = { x: `-${MOTION.page.belowPercent}%`, opacity: MOTION.page.belowOpacity, zIndex: 0 }
+const above = { x: '100%', opacity: 1, zIndex: 1 }
+
+export const pageSlide: Variants = {
+  enter: (direction: number) => (direction > 0 ? above : below),
+  shown: { x: 0, opacity: 1, transition: slide },
+  leave: (direction: number) => ({ ...(direction > 0 ? below : above), transition: slide }),
 }
 
 export function useFlip<T extends HTMLElement>(signature: string) {

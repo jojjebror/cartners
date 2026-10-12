@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState, type RefObject } from 'react'
 import { createPortal } from 'react-dom'
-import { Check, ChevronDown, Plus, Trash2 } from 'lucide-react'
+import { ChevronDown, Plus, Trash2 } from 'lucide-react'
+import { m, useIsPresent } from 'motion/react'
 import { useParams } from 'react-router'
 import { DRAG, ICON_SIZE, LABELS, LIST_PARAM, MOTION, SMALL_ICON_SIZE, UNDO_MS } from '../../shared/constants'
 import { AddField } from '../components/AddField'
 import { AppHeader, useBack } from '../components/AppHeader'
-import { HapticButton } from '../components/HapticButton'
+import { HapticButton, haptic } from '../components/HapticButton'
 import { HistoryRows } from '../components/HistoryRows'
+import { ItemRow } from '../components/ItemRow'
 import { onListNames, sortItems, suggest, type Item } from '../data/items'
 import { addItem, clearChecked, deleteItem, deleteList, rememberList, restoreItem, setChecked, useHistory, useItems, useLists } from '../data/store'
 import { useHousehold } from '../household'
@@ -31,14 +33,17 @@ export function ListPage() {
   const header = useRef<HTMLElement>(null)
   const [title, titled] = useScrolledPast<HTMLHeadingElement>(header)
   const goBack = useBack()
+  const present = useIsPresent()
   const toast = usePresence(undo)
   const [basketOpen, setBasketOpen] = useState(true)
+  const [opened, setOpened] = useState<string>()
+  const swallow = useRef(false)
   const sorted = sortItems(items.docs)
   const basket = sorted.filter((i) => i.checked)
   const left = sorted.length - basket.length
+  const openId = (basketOpen ? sorted : sorted.slice(0, left)).some((i) => i.id === opened) ? opened : undefined
   const rows = useFlip<HTMLDivElement>(sorted.map((i) => `${i.id}:${i.checked}`).join())
-  const swipe = useDragAway({ axis: 'x', sign: -1, ratio: DRAG.removeRatio })
-  const edge = useDragAway({ axis: 'x', sign: 1, ratio: DRAG.backRatio, from: (e) => e.clientX < DRAG.edgePx })
+  const edge = useDragAway({ axis: 'x', sign: 1, ratio: DRAG.backRatio, from: (e) => !openId && e.clientX < DRAG.edgePx })
   const pull = useDragAway({ axis: 'y', sign: 1, ratio: DRAG.closeRatio })
   const pullDown = (dialog: RefObject<HTMLDialogElement | null>) => pull(() => dialog.current && shut(dialog.current), (el) => [el.closest('dialog')])
   const matches = suggest(history.docs, input)
@@ -63,6 +68,7 @@ export function ListPage() {
   }
 
   const discard = (item: Item) => {
+    setOpened((current) => (current === item.id ? undefined : current))
     deleteItem(id, item.id)
     setUndo({ text: LABELS.removed(item.name), revert: () => restoreItem(id, item) })
   }
@@ -82,33 +88,44 @@ export function ListPage() {
   }
 
   const remove = () => {
+    if (options.current) shut(options.current)
     deleteList(id)
     goBack()
   }
 
   const row = (item: Item) => (
-    <HapticButton
+    <ItemRow
       key={item.id}
-      data-key={item.id}
-      className={clearing && item.checked ? 'row item leaving' : 'row item'}
-      aria-pressed={item.checked}
-      onClick={() => toggle(item)}
-      {...swipe(() => discard(item))}
-    >
-      <span className="row-name">{item.name}</span>
-      {item.checked && <Check className="row-check reveal" size={ICON_SIZE} strokeWidth={3} aria-hidden="true" />}
-      <span className="swipe-action" aria-hidden="true">
-        <Trash2 size={SMALL_ICON_SIZE} aria-hidden="true" />
-        {LABELS.delete}
-      </span>
-    </HapticButton>
+      item={item}
+      open={openId === item.id}
+      leaving={clearing && item.checked}
+      onOpen={(open) => setOpened((current) => (open ? item.id : current === item.id ? undefined : current))}
+      onToggle={() => {
+        haptic()
+        toggle(item)
+      }}
+      onRemove={() => discard(item)}
+    />
   )
 
   return (
     <>
-      <div ref={page} className={standalone() ? 'edge-back' : undefined} {...(standalone() ? edge(goBack, () => [page.current, dock.current]) : {})}>
+      <div ref={page} className={standalone() ? 'edge-back' : undefined} {...(standalone() ? edge(goBack, () => [page.current?.closest<HTMLElement>('.page') ?? null, dock.current]) : {})}>
         <AppHeader ref={header} back title={list?.name} titleShown={titled} onMore={list && (() => options.current?.showModal())} />
-        <main className="body stack-tight docked">
+        <main
+          className="body stack-tight docked"
+          onPointerDownCapture={(e) => {
+            // A tap anywhere on the list while a row is open only shuts it.
+            swallow.current = !!openId && !(e.target as Element).closest('.swipe-action')
+            if (swallow.current) setOpened(undefined)
+          }}
+          onClickCapture={(e) => {
+            if (!swallow.current) return
+            swallow.current = false
+            e.preventDefault()
+            e.stopPropagation()
+          }}
+        >
           <div className="title-row">
             <h1 ref={title} className="page-title">{list?.name}</h1>
             {list && !items.loading && (
@@ -117,7 +134,7 @@ export function ListPage() {
               </span>
             )}
           </div>
-          {household && !lists.loading && !list && <p className="hint">{LABELS.listMissing}</p>}
+          {present && household && !lists.loading && !list && <p className="hint">{LABELS.listMissing}</p>}
           <div className="bleed" ref={rows}>
             {sorted.slice(0, left).map(row)}
             {basket.length > 0 && (
@@ -135,7 +152,7 @@ export function ListPage() {
             </HapticButton>
           )}
         </main>
-        {toast.shown && (
+        {toast.shown && present && (
           <div className={toast.leaving ? 'toast leaving' : 'toast'} key={toast.shown.text} role="status">
             <span>{toast.shown.text}</span>
             <HapticButton
@@ -151,12 +168,12 @@ export function ListPage() {
         )}
       </div>
       {createPortal(
-        <div ref={dock} className="dock reveal">
+        <m.div ref={dock} className="dock" initial={{ opacity: 0 }} animate={{ opacity: present ? 1 : 0 }} style={{ pointerEvents: present ? undefined : 'none' }}>
           <HapticButton className="solid-button dock-add" disabled={!list} onClick={openAdder}>
             {LABELS.add}
             <Plus size={SMALL_ICON_SIZE + 2} strokeWidth={3} aria-hidden="true" />
           </HapticButton>
-        </div>,
+        </m.div>,
         document.body,
       )}
       <dialog ref={adder} className="adder" aria-label={LABELS.addItem} onClose={() => setInput('')}>

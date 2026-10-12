@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { MAX_OFTEN } from '../../shared/constants'
-import { historyKey, oftenBought, primaryHousehold, sortItems, suggest, type HistoryEntry, type Item } from './items'
+import { historyKey, inviteId, oftenBought, primaryHousehold, sortItems, suggest, type HistoryEntry, type Item } from './items'
 
 const item = (name: string, checked = false, createdAt = 0): Item => ({ id: name, name, checked, createdAt })
 
@@ -49,5 +49,14 @@ describe('primaryHousehold', () => {
     const shared = { id: 'b', members: ['me', 'you'], names: {} }
     expect(primaryHousehold([own, shared])).toBe(shared)
     expect(primaryHousehold([])).toBeUndefined()
+  })
+})
+
+describe('inviteId', () => {
+  it('finds the household in a pasted invite, shared text included', () => {
+    expect(inviteId('https://cartners.app/join/nWXjesXUsJ3VuDTPttMT')).toBe('nWXjesXUsJ3VuDTPttMT')
+    expect(inviteId('Gå med i vårt hushåll i Cartners https://cartners.app/join/abc123 ')).toBe('abc123')
+    expect(inviteId('https://cartners.app/list/abc123')).toBeUndefined()
+    expect(inviteId(' ')).toBeUndefined()
   })
 })

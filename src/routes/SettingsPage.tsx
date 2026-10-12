@@ -1,13 +1,61 @@
 import { useState, type CSSProperties } from 'react'
-import { UserPlus } from 'lucide-react'
-import { APP_NAME, LABELS, SMALL_ICON_SIZE, THEMES, THEME_LABELS, paths } from '../../shared/constants'
+import { ArrowRight, UserPlus } from 'lucide-react'
+import { useNavigate } from 'react-router'
+import { APP_NAME, ICON_SIZE, LABELS, SMALL_ICON_SIZE, THEMES, THEME_LABELS, paths } from '../../shared/constants'
 import { version } from '../../package.json'
 import { AppHeader } from '../components/AppHeader'
 import { HapticButton } from '../components/HapticButton'
+import { inviteId } from '../data/items'
 import { setName, useUid } from '../data/store'
 import { useHousehold } from '../household'
 import { shareLink } from '../share'
 import { useTheme } from '../theme'
+
+// On an iPhone an invite link opens in Safari, which signs in as someone else than the app on the home
+// screen, so the link can also be pasted here to join from the app itself.
+function JoinByLink() {
+  const navigate = useNavigate()
+  const [link, setLink] = useState('')
+  const [wrong, setWrong] = useState(false)
+  const open = () => {
+    const id = inviteId(link)
+    if (id) navigate(paths.join(id))
+    else setWrong(link.trim() !== '')
+  }
+
+  return (
+    <>
+      <p className="hint">{LABELS.pasteHint}</p>
+      <form
+        className="add"
+        onSubmit={(e) => {
+          e.preventDefault()
+          open()
+        }}
+      >
+        <input
+          value={link}
+          onChange={(e) => {
+            setLink(e.target.value)
+            setWrong(false)
+          }}
+          placeholder={LABELS.pasteInvite}
+          aria-label={LABELS.pasteInvite}
+          enterKeyHint="go"
+          inputMode="url"
+          autoComplete="off"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+        />
+        <HapticButton type="button" className="add-button" aria-label={LABELS.openInvite} onClick={open}>
+          <ArrowRight size={ICON_SIZE} strokeWidth={3} aria-hidden="true" />
+        </HapticButton>
+      </form>
+      {wrong && <p className="hint reveal" role="alert">{LABELS.notInvite}</p>}
+    </>
+  )
+}
 
 function Household() {
   const uid = useUid()
@@ -50,6 +98,7 @@ function Household() {
         <UserPlus size={SMALL_ICON_SIZE} strokeWidth={2.5} aria-hidden="true" />
         {copied ? LABELS.copied : LABELS.invite}
       </HapticButton>
+      <JoinByLink />
     </section>
   )
 }

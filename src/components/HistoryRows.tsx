@@ -3,7 +3,7 @@ import { ICON_SIZE, LABELS } from '../../shared/constants'
 import { normalize, type HistoryEntry } from '../data/items'
 import { HapticButton } from './HapticButton'
 
-export function HistoryRows({ entries, onList, onAdd, counted }: { entries: HistoryEntry[]; onList: Set<string>; onAdd: (name: string) => void; counted?: boolean }) {
+export function HistoryRows({ entries, onList, onAdd }: { entries: HistoryEntry[]; onList: Set<string>; onAdd: (name: string) => void }) {
   return (
     <div className="bleed reveal">
       {entries.map((h) => {
@@ -20,7 +20,6 @@ export function HistoryRows({ entries, onList, onAdd, counted }: { entries: Hist
             onClick={() => onAdd(h.name)}
           >
             <span className="row-name">{h.name}</span>
-            {counted && <span className="row-count">{h.count}×</span>}
             <Icon className="row-check" size={ICON_SIZE} strokeWidth={3} aria-hidden="true" />
           </HapticButton>
         )

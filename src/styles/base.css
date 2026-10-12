@@ -16,7 +16,8 @@ button, a { -webkit-user-select: none; user-select: none; -webkit-touch-callout:
 h1, h2, p { margin: 0; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-.app { max-width: var(--max-width); margin: 0 auto; min-height: 100dvh; overflow-x: clip; }
+.app { position: relative; max-width: var(--max-width); margin: 0 auto; min-height: 100dvh; overflow-x: clip; }
+.page { position: relative; min-height: 100dvh; background: var(--bg); }
 .body {
   padding: 14px max(var(--gutter), env(safe-area-inset-right)) calc(var(--nav-height) + 24px + env(safe-area-inset-bottom)) max(var(--gutter), env(safe-area-inset-left));
 }
