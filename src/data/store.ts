@@ -6,6 +6,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   increment,
   onSnapshot,
@@ -19,18 +20,20 @@ import {
   writeBatch,
   type DocumentData,
   type DocumentReference,
+  type FirestoreError,
   type Query,
   type QueryDocumentSnapshot,
   type QuerySnapshot,
   type Unsubscribe,
 } from 'firebase/firestore'
-import { COLLECTIONS, LAST_LIST_STORAGE_KEY } from '../../shared/constants'
+import { COLLECTIONS, INVITE, LAST_LIST_STORAGE_KEY } from '../../shared/constants'
 import { db, uid } from '../firebase'
 import { readStored, writeStored } from '../storage'
-import { historyKey, normalize, type HistoryEntry, type Household, type Item, type List } from './items'
+import { historyKey, newInviteCode, normalize, type HistoryEntry, type Household, type Item, type List } from './items'
 
 const households = collection(db, COLLECTIONS.households)
 const lists = collection(db, COLLECTIONS.lists)
+const invites = collection(db, COLLECTIONS.invites)
 const household = (householdId: string) => doc(households, householdId)
 const items = (listId: string) => collection(db, COLLECTIONS.lists, listId, COLLECTIONS.items)
 const history = (listId: string) => collection(db, COLLECTIONS.lists, listId, COLLECTIONS.history)
@@ -122,9 +125,34 @@ export async function adoptLegacyLists(member: string, householdId: string) {
   return batch.commit()
 }
 
+// An invite is a short code that points at a household for a while, so it can be read out or typed into the
+// app. Unlike other writes it is awaited, so a code is only shown once it works. The rules only let an invite be
+// created, so a code that is already taken is refused and another one is drawn.
+export async function createInvite(householdId: string, member: string) {
+  const expiresAt = Timestamp.fromMillis(Date.now() + INVITE.days * 24 * 60 * 60 * 1000)
+  for (let attempt = 1; ; attempt++) {
+    const code = newInviteCode()
+    try {
+      await setDoc(doc(invites, code), { householdId, createdBy: member, expiresAt })
+      return code
+    } catch (e) {
+      if (attempt >= 3 || (e as FirestoreError).code !== 'permission-denied') throw e
+    }
+  }
+}
+
+// The rules refuse a code that does not exist or has run out, which reads as no household; any other failure
+// means the server could not be asked.
+export const findInvite = (code: string): Promise<{ householdId?: string; reachable: boolean }> =>
+  getDoc(doc(invites, code)).then(
+    (s) => ({ householdId: s.data()?.householdId, reachable: true }),
+    (e: FirestoreError) => ({ reachable: e.code === 'permission-denied' }),
+  )
+
 export function joinHousehold(member: string, target: string, current: Household | undefined, own: List[]) {
   const batch = writeBatch(db)
-  batch.update(household(target), { members: arrayUnion(member) })
+  const name = current?.names[member]
+  batch.update(household(target), { members: arrayUnion(member), ...(name ? { [`names.${member}`]: name } : {}) })
   own.forEach((list) => batch.update(doc(lists, list.id), { householdId: target }))
   if (current && current.id !== target) batch.update(household(current.id), { members: arrayRemove(member) })
   batch.commit().catch(fail)

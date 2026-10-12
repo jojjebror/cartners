@@ -2,6 +2,7 @@ import type { Ref } from 'react'
 import { ArrowLeft, Ellipsis, Moon, Share2, Sun } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { APP_NAME, ICON_SIZE, LABELS, LOGO_SIZES, THEME_TOGGLE_LABELS, paths } from '../../shared/constants'
+import { markAppBack } from '../motion'
 import { useTheme } from '../theme'
 import { HapticButton } from './HapticButton'
 import { LogoMark } from './LogoMark'
@@ -9,7 +10,11 @@ import { LogoMark } from './LogoMark'
 export function useBack() {
   const navigate = useNavigate()
   const { key } = useLocation()
-  return () => (key === 'default' ? navigate(paths.home, { replace: true }) : navigate(-1))
+  return () => {
+    markAppBack()
+    if (key === 'default') navigate(paths.home, { replace: true })
+    else navigate(-1)
+  }
 }
 
 export function AppHeader({ ref, back, title, titleShown, onShare, onMore }: { ref?: Ref<HTMLElement>; back?: boolean; title?: string; titleShown?: boolean; onShare?: () => void; onMore?: () => void }) {

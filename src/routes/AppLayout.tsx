@@ -1,6 +1,6 @@
 import { useCallback, useLayoutEffect, useRef, type ComponentProps } from 'react'
 import { AnimatePresence, LazyMotion, MotionConfig, domAnimation, m, useIsPresent } from 'motion/react'
-import { ScrollRestoration, useLocation, useOutlet } from 'react-router'
+import { ScrollRestoration, useLocation, useNavigationType, useOutlet } from 'react-router'
 import { BottomNav } from '../components/BottomNav'
 import { HouseholdProvider } from '../household'
 import { pageSlide, useSlideDirection } from '../motion'
@@ -21,17 +21,20 @@ function Page({ ref, ...props }: ComponentProps<typeof m.div>) {
   useLayoutEffect(() => {
     const el = own.current
     if (present || !el) return
-    const { top, left } = el.getBoundingClientRect()
+    // Left comes from the app column, since a page let go of mid edge swipe still carries its drag offset.
+    const { top } = el.getBoundingClientRect()
+    const left = el.parentElement?.getBoundingClientRect().left ?? 0
     Object.entries({ position: 'fixed', top: `${top}px`, left: `${left}px` }).forEach(([key, value]) => el.style.setProperty(key, value, 'important'))
   }, [present])
   return <m.div ref={refs} {...props} inert={!present} />
 }
 
 export function AppLayout() {
-  const { pathname } = useLocation()
+  const location = useLocation()
+  const { pathname } = location
   // The page on its way out keeps the outlet it was rendered with, so it does not turn into the new page mid-slide.
   const outlet = useOutlet()
-  const direction = useSlideDirection(pathname)
+  const direction = useSlideDirection(location, useNavigationType())
   return (
     <HouseholdProvider>
       <MotionConfig reducedMotion="user">

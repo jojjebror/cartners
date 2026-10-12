@@ -1,4 +1,4 @@
-import { LOCALE, MAX_OFTEN, paths } from '../../shared/constants'
+import { INVITE, LOCALE, MAX_OFTEN } from '../../shared/constants'
 
 export type Item = { id: string; name: string; checked: boolean; createdAt: number }
 export type HistoryEntry = { name: string; count: number }
@@ -18,8 +18,17 @@ export const onListNames = (items: Item[]) => new Set(items.filter((i) => !i.che
 
 export const oftenBought = (history: HistoryEntry[]) => history.toSorted((a, b) => b.count - a.count).slice(0, MAX_OFTEN)
 
-const invitePattern = new RegExp(`${paths.join('')}([A-Za-z0-9]+)`)
+const half = `[${INVITE.alphabet}]{${INVITE.length / 2}}`
+const codeInText = new RegExp(`(?:^|[^A-Z0-9])(${half})[ -]?(${half})(?![A-Z0-9])`, 'g')
 
-export const inviteId = (text: string) => text.match(invitePattern)?.[1]
+export const newInviteCode = () => Array.from(crypto.getRandomValues(new Uint32Array(INVITE.length)), (n) => INVITE.alphabet[n % INVITE.alphabet.length]).join('')
+
+// Finds a code however it was typed, or in the whole message it was shared in.
+export const findCode = (text: string) => {
+  const found = [...text.toUpperCase().matchAll(codeInText)].at(-1)
+  return found && found[1] + found[2]
+}
+
+export const formatCode = (code: string) => `${code.slice(0, 3)} ${code.slice(3)}`
 
 export const primaryHousehold = (households: Household[]) => households.toSorted((a, b) => b.members.length - a.members.length || a.id.localeCompare(b.id))[0]

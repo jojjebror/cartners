@@ -109,6 +109,8 @@
   text-transform: uppercase;
 }
 .outline-button { align-self: flex-start; }
+.invite { display: grid; gap: 6px; }
+.invite-code { font: 700 30px/1.1 var(--font-score); letter-spacing: 0.14em; font-variant-numeric: tabular-nums; -webkit-user-select: all; user-select: all; }
 .outline-button:disabled, .text-button:disabled { opacity: 0.5; }
 .solid-button {
   padding: 12px 16px;
@@ -153,7 +155,7 @@ button:disabled > [data-haptic-trigger] { pointer-events: none; }
 .adder-bar { display: flex; align-items: center; gap: 12px; padding: 8px var(--edge-end) 10px var(--edge-start); }
 .grabber { display: block; width: 36px; height: 5px; margin: 6px auto 0; border-radius: 3px; background: var(--line); }
 .drag-handle { touch-action: none; }
-.edge-back { touch-action: pan-y pinch-zoom; }
+.edge-back { min-height: 100dvh; touch-action: pan-y pinch-zoom; }
 .adder-bar .add { flex: 1; }
 .adder-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: grid; align-content: start; gap: 12px; padding: 16px var(--edge-end) calc(24px + env(safe-area-inset-bottom)) var(--edge-start); }
 .confirm-actions { display: flex; justify-content: flex-end; gap: 8px; }

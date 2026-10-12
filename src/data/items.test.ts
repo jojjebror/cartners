@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { MAX_OFTEN } from '../../shared/constants'
-import { historyKey, inviteId, oftenBought, primaryHousehold, sortItems, suggest, type HistoryEntry, type Item } from './items'
+import { findCode, formatCode, historyKey, newInviteCode, oftenBought, primaryHousehold, sortItems, suggest, type HistoryEntry, type Item } from './items'
 
 const item = (name: string, checked = false, createdAt = 0): Item => ({ id: name, name, checked, createdAt })
 
@@ -52,11 +52,18 @@ describe('primaryHousehold', () => {
   })
 })
 
-describe('inviteId', () => {
-  it('finds the household in a pasted invite, shared text included', () => {
-    expect(inviteId('https://cartners.app/join/nWXjesXUsJ3VuDTPttMT')).toBe('nWXjesXUsJ3VuDTPttMT')
-    expect(inviteId('Gå med i vårt hushåll i Cartners https://cartners.app/join/abc123 ')).toBe('abc123')
-    expect(inviteId('https://cartners.app/list/abc123')).toBeUndefined()
-    expect(inviteId(' ')).toBeUndefined()
+describe('invite codes', () => {
+  it('are made of letters that cannot be mixed up', () => {
+    const code = newInviteCode()
+    expect(findCode(code)).toBe(code)
+    expect(findCode('K7QM2O')).toBeUndefined()
+    expect(findCode('K7QM2')).toBeUndefined()
+  })
+
+  it('are found however they are typed, or in the message they were shared in', () => {
+    expect(findCode(' k7q-m2p ')).toBe('K7QM2P')
+    expect(findCode('k7q m2p')).toBe('K7QM2P')
+    expect(findCode('Gå med i vårt hushåll i Cartners med koden K7Q M2P. Skriv in den under Inställningar i appen.')).toBe('K7QM2P')
+    expect(formatCode('K7QM2P')).toBe('K7Q M2P')
   })
 })

@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent, type RefObject, type SyntheticEvent } from 'react'
 import type { Transition, Variants } from 'motion/react'
+import { NavigationType } from 'react-router'
 import { DRAG, MOTION, REDUCED_MOTION_QUERY, SPLASH, STANDALONE_QUERY, paths } from '../shared/constants'
 import { haptic } from './components/HapticButton'
 
@@ -8,24 +9,40 @@ const reduced = () => matchMedia(REDUCED_MOTION_QUERY).matches
 const routeDepth = (path: string) =>
   path.startsWith(paths.join('')) ? 4 : path === paths.settings ? 3 : path === paths.often ? 2 : path.startsWith(paths.list('')) ? 1 : 0
 
-export function useSlideDirection(pathname: string) {
+// The app's own back, from the header or the edge swipe, marks itself. A history move the browser makes on its
+// own on an iPhone, such as Safari's edge swipe, which it has already animated, then swaps pages without a
+// second slide.
+let appBack = false
+export const markAppBack = () => {
+  appBack = true
+}
+
+const ios = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+
+export function useSlideDirection({ pathname, key }: { pathname: string; key: string }, type: NavigationType) {
   const [last, setLast] = useState({ pathname, direction: 1 })
+  useEffect(() => {
+    appBack = false
+  }, [key])
   if (last.pathname === pathname) return last.direction
-  const next = { pathname, direction: routeDepth(pathname) < routeDepth(last.pathname) ? -1 : 1 }
-  setLast(next)
-  return next.direction
+  const direction = reduced() || (type === NavigationType.Pop && !appBack && ios()) ? 0 : routeDepth(pathname) < routeDepth(last.pathname) ? -1 : 1
+  setLast({ pathname, direction })
+  return direction
 }
 
 // A page reached further in slides in over the one it leaves, which drifts back and dims, as on iOS. Going
-// back plays it in reverse: the page on top slides away and uncovers the one below.
-const slide: Transition = { type: 'spring', visualDuration: MOTION.page.seconds, bounce: 0, zIndex: { duration: 0 } }
-const below = { x: `-${MOTION.page.belowPercent}%`, opacity: MOTION.page.belowOpacity, zIndex: 0 }
-const above = { x: '100%', opacity: 1, zIndex: 1 }
+// back plays it in reverse: the page on top slides away and uncovers the one below. The slide animates
+// transform and opacity, which the browser runs off the main thread, so a page that is still rendering as it
+// arrives does not make it stutter.
+const slide: Transition = { duration: MOTION.page.seconds, ease: MOTION.page.ease, zIndex: { duration: 0 } }
+const below = { transform: `translateX(-${MOTION.page.belowPercent}%)`, opacity: MOTION.page.belowOpacity, zIndex: 0 }
+const above = { transform: 'translateX(100%)', opacity: 1, zIndex: 1 }
+const swapped = { transform: 'translateX(0%)', opacity: 1, zIndex: 0 }
 
 export const pageSlide: Variants = {
-  enter: (direction: number) => (direction > 0 ? above : below),
-  shown: { x: 0, opacity: 1, transition: slide },
-  leave: (direction: number) => ({ ...(direction > 0 ? below : above), transition: slide }),
+  enter: (direction: number) => (direction > 0 ? above : direction < 0 ? below : swapped),
+  shown: { transform: 'translateX(0%)', opacity: 1, transition: slide, transitionEnd: { transform: 'none' } },
+  leave: (direction: number) => (direction ? { ...(direction > 0 ? below : above), transition: slide } : { opacity: 0, transition: { duration: 0 } }),
 }
 
 export function useFlip<T extends HTMLElement>(signature: string) {
@@ -57,7 +74,9 @@ export function usePresence<T>(value: T | undefined) {
   return { shown: value ?? shown, leaving: value === undefined && shown !== undefined }
 }
 
-export function useDragAway({ axis, sign, ratio, from }: { axis: 'x' | 'y'; sign: 1 | -1; ratio: number; from?: (e: PointerEvent<HTMLElement>) => boolean }) {
+// With handOff, a drag that commits leaves the first element where the finger let go and calls onAway at once,
+// so whatever runs next, such as the page slide, carries on from there.
+export function useDragAway({ axis, sign, ratio, from, handOff }: { axis: 'x' | 'y'; sign: 1 | -1; ratio: number; from?: (e: PointerEvent<HTMLElement>) => boolean; handOff?: boolean }) {
   const drag = useRef<{ els: HTMLElement[]; id: number; x: number; y: number; d: number; t: number; v: number; on?: boolean }>(undefined)
   const dragged = useRef(false)
   const shift = (d: number | string) => (axis === 'x' ? `${d} 0` : `0 ${d}`)
@@ -70,10 +89,15 @@ export function useDragAway({ axis, sign, ratio, from }: { axis: 'x' | 'y'; sign
     const away = onAway && (sign * g.d > size * ratio || sign * g.v > DRAG.flickPxPerMs)
     if (away) haptic()
     const duration = reduced() ? 0 : away ? MOTION.exitMs : MOTION.moveMs
-    const slides = g.els.map((el) => {
+    const settle = (el: HTMLElement) => {
       el.style.translate = ''
       return el.animate({ translate: [shift(`${g.d}px`), shift(away ? `${sign * 100}%` : 0)] }, { duration, easing: MOTION.easing, fill: away ? 'forwards' : 'none' })
-    })
+    }
+    if (away && handOff) {
+      g.els.slice(1).forEach(settle)
+      return onAway()
+    }
+    const slides = g.els.map(settle)
     if (away) slides[0].finished.then(onAway)
   }
 
